@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nook</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <button id="settings-btn" class="settings-btn">☰</button>
+        <header>
+            <h1>Nook</h1>
+            <div class="theme-toggle">
+                <button id="theme-btn">🌙</button>
+            </div>
+        </header>
+        
+        <!-- 设置面板 -->
+        <div id="settings-panel" class="settings-panel">
+            <div class="settings-header">
+                <h2>设置</h2>
+                <button id="close-settings-btn" class="close-btn">×</button>
+            </div>
+            <div class="settings-content">
+                <div class="form-group">
+                    <label for="bg-image">背景图片</label>
+                    <input type="text" id="bg-image" placeholder="输入图片URL" class="bg-image-input">
+                    <input type="file" id="bg-image-file" accept="image/*" class="bg-image-input">
+                    <button id="apply-bg-btn">应用</button>
+                </div>
+
+            </div>
+        </div>
+        
+        <!-- 半透明遮罩 -->
+        <div id="overlay" class="overlay"></div>
+        
+        <main>
+            <!-- 搜索引擎部分 -->
+            <section class="search-section bg-image-input">
+                <div class="search-container bg-image-input">
+                        <option value="bing" selected class="bg-image-input">Bing</option>
+                    <form id="search-form">
+                        <input type="text" id="search-input" placeholder="输入搜索内容..." class="bg-image-input2">
+                        <button type="submit">搜索</button>
+                    </form>
+                </div>
+            </section>
+            
+            <!-- 网站收藏部分 -->
+            <section class="bookmarks-section">
+                <div class="section-header">
+                    <h2>收藏网站</h2>
+                </div>
+                <div id="bookmarks-container" class="bookmarks-container">
+                    <!-- 收藏网站将通过JS动态生成 -->
+                    <div id="add-bookmark-btn" class="bookmark-item add-bookmark">
+                        <div class="bookmark-icon">+</div>
+                        <div class="bookmark-name">添加</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 静态页面链接部分 -->
+            <section class="static-pages-section">
+                <div class="section-header">
+                    <h2>我的工具</h2>
+                </div>
+                <div id="static-pages-container" class="static-pages-container">
+                    <!-- 静态页面链接将通过JS动态生成 -->
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 我的首页</p>
+        </footer>
+    </div>
+    
+    <!-- 添加/编辑收藏网站的模态框 -->
+    <div id="bookmark-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modal-title">添加收藏</h3>
+            <form id="bookmark-form">
+                <input type="hidden" id="bookmark-id" class="bg-image-input">
+                <div class="form-group">
+                    <label for="bookmark-name">网站名称</label>
+                    <input type="text" id="bookmark-name" required class="bg-image-input">
+                </div>
+                <div class="form-group">
+                    <label for="bookmark-url">网站地址</label>
+                    <input type="text" id="bookmark-url" required placeholder="例如: https://www.example.com" class="bg-image-input">
+                </div>
+                <div class="form-group">
+                    <label>图标类型</label>
+                    <select id="icon-type" class="bg-image-input">
+                        <option value="emoji">表情图标</option>
+                        <option value="url">URL图标</option>
+                    </select>
+                </div>
+                <div class="form-group" id="emoji-icon-group">
+                    <label for="bookmark-icon">表情图标 (可选)</label>
+                    <input type="text" id="bookmark-icon" placeholder="例如: 🌐" class="bg-image-input">
+                </div>
+                <div class="form-group" id="url-icon-group" style="display: none;">
+                    <label for="bookmark-icon-url">图标URL (可选)</label>
+                    <input type="url" id="bookmark-icon-url" placeholder="例如: https://example.com/icon.png" class="bg-image-input">
+                </div>
+                <div class="form-group">
+                    <label>默认图标</label>
+                    <div class="icon-selector">
+                        <button type="button" class="icon-option" data-icon="🌐">🌐</button>
+                        <button type="button" class="icon-option" data-icon="💻">💻</button>
+                        <button type="button" class="icon-option" data-icon="🎬">🎬</button>
+                        <button type="button" class="icon-option" data-icon="📧">📧</button>
+                        <button type="button" class="icon-option" data-icon="🎵">🎵</button>
+                        <button type="button" class="icon-option" data-icon="📱">📱</button>
+                        <button type="button" class="icon-option" data-icon="📷">📷</button>
+                        <button type="button" class="icon-option" data-icon="🎮">🎮</button>
+                    </div>
+                </div>
+                <button type="submit">保存</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 编辑静态页面的模态框 -->
+    <div id="static-page-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="static-page-modal-title">编辑静态页面</h3>
+            <form id="static-page-form">
+                <input type="hidden" id="static-page-id" class="bg-image-input">
+                <div class="form-group">
+                    <label for="static-page-path">页面路径</label>
+                    <input type="text" id="static-page-path" required placeholder="例如: static/sample.html" readonly class="bg-image-input">
+                </div>
+                <div class="form-group">
+                    <label for="static-page-name">页面名称</label>
+                    <input type="text" id="static-page-name" required class="bg-image-input">
+                </div>
+                <div class="form-group">
+                    <label>图标类型</label>
+                    <select id="static-icon-type" class="bg-image-input">
+                        <option value="emoji">表情图标</option>
+                        <option value="url">URL图标</option>
+                    </select>
+                </div>
+                <div class="form-group" id="static-emoji-icon-group">
+                    <label for="static-page-icon">表情图标 (可选)</label>
+                    <input type="text" id="static-page-icon" placeholder="例如: 📄" class="bg-image-input">
+                </div>
+                <div class="form-group" id="static-url-icon-group" style="display: none;">
+                    <label for="static-page-icon-url">图标URL (可选)</label>
+                    <input type="url" id="static-page-icon-url" placeholder="例如: https://example.com/icon.png" class="bg-image-input">
+                </div>
+                <div class="form-group">
+                    <label>默认图标</label>
+                    <div class="icon-selector">
+                        <button type="button" class="icon-option" data-icon="📄">📄</button>
+                        <button type="button" class="icon-option" data-icon="📃">📃</button>
+                        <button type="button" class="icon-option" data-icon="📑">📑</button>
+                        <button type="button" class="icon-option" data-icon="📋">📋</button>
+                        <button type="button" class="icon-option" data-icon="📖">📖</button>
+                        <button type="button" class="icon-option" data-icon="📓">📓</button>
+                        <button type="button" class="icon-option" data-icon="📒">📒</button>
+                        <button type="button" class="icon-option" data-icon="📔">📔</button>
+                    </div>
+                </div>
+                <button type="submit">保存</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

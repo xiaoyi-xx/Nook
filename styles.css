@@ -1,0 +1,833 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+}
+
+/* 深色模式 */
+body.dark {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-top: 60px;
+    position: relative;
+    background-color: transparent;
+}
+
+body.dark .container {
+    background-color: transparent;
+}
+
+/* 头部样式 */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.settings-btn {
+    position: absolute;
+    top: 25px;
+    left: 20px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.settings-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.dark .settings-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 设置面板 */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100vh;
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.8));
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s ease;
+    z-index: 1001;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+body.dark .settings-panel {
+    background-color: #1e1e1e;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 确保设置面板在透明模式下也半透明 */
+.container.semi-transparent .settings-panel {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark .container.semi-transparent .settings-panel {
+    background-color: rgba(30, 30, 30, 0.5);
+}
+
+.settings-panel.open {
+    left: 0;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+body.dark .settings-header {
+    border-bottom-color: #333;
+}
+
+.settings-header h2 {
+    margin: 0;
+    color: #4a6fa5;
+}
+
+body.dark .settings-header h2 {
+    color: #64b5f6;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.dark .close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#apply-bg-btn {
+    padding: 8px 16px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+#apply-bg-btn:hover {
+    background-color: #3a5a85;
+}
+
+#opacity {
+    width: 100%;
+    margin: 10px 0;
+}
+
+/* 遮罩 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+/* 当模态框打开时，后面的元素虚化 */
+.modal.show .container,
+.modal.show .settings-btn {
+    filter: blur(5px);
+    transition: filter 0.3s ease;
+}
+
+.settings-panel.open .container,
+.settings-panel.open .settings-btn {
+    filter: blur(5px);
+    transition: filter 0.3s ease;
+}
+
+.overlay.show {
+    display: block;
+}
+
+/* 半透明元素 */
+.container.semi-transparent {
+    border-radius: 8px;
+}
+.bg-image-input {
+    background-color: transparent;
+}
+
+.bg-image-input2 {
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+}
+body.dark .container.semi-transparent {
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 背景图片 */
+body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+body.dark header {
+    border-bottom-color: #333;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    color: #4a6fa5;
+}
+
+body.dark header h1 {
+    color: #64b5f6;
+}
+
+.theme-toggle button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.dark .theme-toggle button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 主内容区域 */
+main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+@media (min-width: 768px) {
+    main {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .search-section {
+        grid-column: 1 / -1;
+    }
+}
+
+/* 搜索引擎部分 */
+.search-section {
+    background-color: transparent;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+body.dark .search-section {
+    background-color: transparent;
+}
+
+.search-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@media (min-width: 600px) {
+    .search-container {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    #search-engine {
+        flex: 0 0 120px;
+    }
+    
+    #search-form {
+        flex: 1;
+    }
+}
+
+#search-engine {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: white;
+    color: #333;
+    outline: none;
+}
+
+#search-engine::-moz-selection {
+    background: transparent;
+}
+
+#search-engine::selection {
+    background: transparent;
+}
+
+body.dark #search-engine {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+#search-form {
+    display: flex;
+    gap: 10px;
+}
+
+#search-input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    outline: none;
+}
+
+#search-input::-moz-selection {
+    background: transparent;
+}
+
+#search-input::selection {
+    background: transparent;
+}
+
+body.dark #search-input {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+#search-form button {
+    padding: 10px 20px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#search-form button:hover {
+    background-color: #3a5a85;
+}
+
+/* 通用区块样式 */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: #4a6fa5;
+}
+
+body.dark .section-header h2 {
+    color: #64b5f6;
+}
+
+.section-header button {
+    padding: 8px 16px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.section-header button:hover {
+    background-color: #3a5a85;
+}
+
+/* 收藏网站部分 */
+.bookmarks-section {
+    background-color: transparent;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+body.dark .bookmarks-section {
+    background-color: transparent;
+}
+
+.bookmarks-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.bookmark-item {
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.bookmark-item.add-bookmark {
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+    border: 2px dashed #4a6fa5;
+    cursor: pointer;
+}
+
+body.dark .bookmark-item.add-bookmark {
+    background-color: #1e3a5f;
+    border-color: #64b5f6;
+}
+
+.bookmark-item.add-bookmark:hover {
+    background-color: #d4e4fc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .bookmark-item.add-bookmark:hover {
+    background-color: #254a7b;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.bookmark-item.add-bookmark .bookmark-icon {
+    font-size: 2.5rem;
+    color: #4a6fa5;
+}
+
+body.dark .bookmark-item.add-bookmark .bookmark-icon {
+    color: #64b5f6;
+}
+
+body.dark .bookmark-item {
+    background-color: #2d2d2d;
+}
+
+.bookmark-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .bookmark-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 确保图标容器在透明模式下也半透明 */
+.container.semi-transparent .bookmark-item {
+    background-color: rgba(249, 249, 249, 0.5);
+}
+
+.container.semi-transparent .bookmark-item.add-bookmark {
+    background-color: rgba(232, 240, 254, 0.5);
+}
+
+body.dark .container.semi-transparent .bookmark-item {
+    background-color: rgba(45, 45, 45, 0.5);
+}
+
+body.dark .container.semi-transparent .bookmark-item.add-bookmark {
+    background-color: rgba(30, 58, 95, 0.5);
+}
+
+.bookmark-item a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.bookmark-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+}
+
+.bookmark-icon img {
+    width: 40px !important;
+    height: 40px !important;
+    object-fit: contain;
+}
+
+.bookmark-name {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.bookmark-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bookmark-item:hover .bookmark-actions,
+.static-page-item:hover .bookmark-actions {
+    opacity: 1;
+}
+
+.bookmark-actions button {
+    background: none;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.bookmark-actions button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.dark .bookmark-actions button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 静态页面部分 */
+.static-pages-section {
+    background-color: transparent;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+body.dark .static-pages-section {
+    background-color: transparent;
+}
+
+.static-pages-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.static-page-item {
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+body.dark .static-page-item {
+    background-color: #2d2d2d;
+}
+
+/* 确保静态页面图标容器在透明模式下也半透明 */
+.container.semi-transparent .static-page-item {
+    background-color: rgba(249, 249, 249, 0.5);
+}
+
+body.dark .container.semi-transparent .static-page-item {
+    background-color: rgba(45, 45, 45, 0.5);
+}
+
+.static-page-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .static-page-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.static-page-item a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.static-page-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+}
+
+.static-page-icon img {
+    width: 40px !important;
+    height: 40px !important;
+    object-fit: contain;
+}
+
+.static-page-name {
+    font-weight: 500;
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: rgba(249, 249, 249, var(--container-opacity, 0.8));
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .modal-content {
+    background-color: #1e1e1e;
+    border-color: #444;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* 确保模态框在透明模式下也半透明 */
+.container.semi-transparent .modal-content {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark .container.semi-transparent .modal-content {
+    background-color: rgba(30, 30, 30, 0.5);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+body.dark .close:hover,
+body.dark .close:focus {
+    color: white;
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    color: #4a6fa5;
+}
+
+body.dark .modal-content h3 {
+    color: #64b5f6;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.icon-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.icon-option {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+body.dark .icon-option {
+    background-color: #333;
+    border-color: #444;
+}
+
+.icon-option:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.1);
+}
+
+body.dark .icon-option:hover {
+    background-color: #444;
+}
+
+.icon-option:active {
+    transform: scale(0.95);
+}
+
+body.dark .form-group input,
+body.dark .form-group select {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+#bookmark-form button,
+#static-page-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#bookmark-form button:hover,
+#static-page-form button:hover {
+    background-color: #3a5a85;
+}
+
+/* 页脚样式 */
+footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    color: #666;
+}
+
+body.dark footer {
+    border-top-color: #333;
+    color: #999;
+}
+
+/* 响应式设计 */
+@media (max-width: 767px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    .bookmarks-container,
+    .static-pages-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.bookmark-item,
+.static-page-item {
+    animation: fadeIn 0.3s ease;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+body.dark ::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}

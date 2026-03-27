@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>示例静态页面</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        h1 {
+            color: #4a6fa5;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4a6fa5;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .back-link:hover {
+            background-color: #3a5a85;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>示例静态页面</h1>
+        <p>这是一个静态HTML页面示例</p>
+    </header>
+    
+    <main>
+        <div class="content">
+            <h2>欢迎访问示例页面</h2>
+            <p>这个页面展示了如何在首页中链接到静态HTML页面。</p>
+            <p>你可以在static目录中创建更多的静态页面，它们会自动显示在首页的"静态页面"部分。</p>
+            <h3>使用说明</h3>
+            <ul>
+                <li>在static目录中创建HTML文件</li>
+                <li>首页会自动扫描并显示这些页面的链接</li>
+                <li>点击链接可以在新标签页中打开静态页面</li>
+            </ul>
+        </div>
+        
+        <a href="../index.html" class="back-link">返回首页</a>
+    </main>
+    
+    <footer>
+        <p>&copy; 2026 静态页面示例</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>径向电磁力波阶次数计算表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .zoom-controls {
+            margin: 10px 0;
+        }
+        .zoom-btn {
+            padding: 5px 10px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .zoom-btn:hover {
+            background-color: #45a049;
+        }
+        #forceWaveTable, #frequencyTable {
+            transform-origin: top left;
+            transition: transform 0.3s ease;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input {
+            width: 95%;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .input-cell {
+            background-color: #f9f9f9;
+        }
+        .v-cell {
+            background-color: #ffff00;
+            font-weight: bold;
+        }
+        .u-cell {
+            background-color: #90ee90;
+            font-weight: bold;
+        }
+        .highlight-cell {
+            background-color: #ffcccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>径向电磁力波阶次数计算表</h1>
+        
+        <table id="resultTable">
+            <tr>
+                <th>槽数 Z</th>
+                <td class="input-cell"><input type="number" id="slotNumber" value="12" min="1" oninput="calculate()"></td>
+                <th>齿谐波 Vz</th>
+                <td id="vz1"></td>
+                <td id="vz2"></td>
+                <td id="vz3"></td>
+                <td id="vz4"></td>
+                <td id="vz5"></td>
+                <td id="vz6"></td>
+                <td id="vz7"></td>
+                <td id="vz8"></td>
+            </tr>
+            <tr>
+                <th>极对数 P</th>
+                <td class="input-cell"><input type="number" id="polePairs" value="5" min="1" oninput="calculate()"></td>
+                <th>齿谐波阶次 i</th>
+                <td>-1</td>
+                <td>1</td>
+                <td>-2</td>
+                <td>2</td>
+                <td>-3</td>
+                <td>3</td>
+                <td>-4</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <th>每极每相槽数分母 d</th>
+                <td class="input-cell"><input type="number" id="d" value="5" min="1" oninput="calculate()"></td>
+                <th>单元电机数 t</th>
+                <td id="tValue"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+        
+        <h2>力波阶次表</h2>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomForceWave(0.9)">缩小</button>
+            <button class="zoom-btn" onclick="zoomForceWave(1.1)">放大</button>
+            <button class="zoom-btn" onclick="resetForceWaveZoom()">重置</button>
+        </div>
+        <div class="table-container">
+            <table id="forceWaveTable">
+                <thead id="forceWaveTableHead"></thead>
+                <tbody id="forceWaveTableBody"></tbody>
+            </table>
+        </div>
+        
+        <h2>频率表</h2>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomFrequency(0.9)">缩小</button>
+            <button class="zoom-btn" onclick="zoomFrequency(1.1)">放大</button>
+            <button class="zoom-btn" onclick="resetFrequencyZoom()">重置</button>
+        </div>
+        <div class="table-container">
+            <table id="frequencyTable">
+                <thead id="frequencyTableHead"></thead>
+                <tbody id="frequencyTableBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="formula-section" style="margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+            <h3>计算公式说明</h3>
+            <ul style="line-height: 1.6;">
+                <li><strong>齿谐波 Vz</strong> = (P + Z * i) / P，其中i为齿谐波阶次(-1, 1, -2, 2, -3, 3, -4, 4)</li>
+                <li><strong>单元电机数 t</strong>：
+                    <ul>
+                        <li>当d为偶数时：t = 2 * P / d</li>
+                        <li>当d为奇数时：t = P / d</li>
+                    </ul>
+                </li>
+                <li><strong>定子谐波极对数 v</strong>：
+                    <ul>
+                        <li>当d为偶数时：v = (2 * k / d + 1) * P，其中k为定子谐波次数</li>
+                        <li>当d为奇数时：v = (6 * k + d) * t，其中k为定子谐波次数</li>
+                    </ul>
+                </li>
+                <li><strong>转子谐波极对数 u</strong> = (2 * r + 1) * P，其中r为转子谐波次数</li>
+                <li><strong>力波阶次合成公式</strong>：
+                    <ul>
+                        <li>当d为偶数时：u-v 和 u+v</li>
+                        <li>当d为奇数时：(u-v) * t 和 (u+v) * t</li>
+                    </ul>
+                </li>
+                <li><strong>频率合成公式</strong>：
+                    <ul>
+                        <li>u-v：2 * r * P</li>
+                        <li>u+v：2 * (r + 1) * P</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="saveRecord()">保存记录</button>
+            <button onclick="exportTables()">导出表格</button>
+        </div>
+        
+        <div class="result" id="historySection">
+            <h3>历史记录</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+    
+    <script>
+        function calculate() {
+            // 获取输入参数
+            const Z = parseInt(document.getElementById('slotNumber').value) || 0;
+            const P = parseInt(document.getElementById('polePairs').value) || 0;
+            const d = parseInt(document.getElementById('d').value) || 0;
+            
+            // 齿谐波阶次
+            const toothHarmonicOrders = [-1, 1, -2, 2, -3, 3, -4, 4];
+            
+            // 计算齿谐波 Vz
+            const toothHarmonics = toothHarmonicOrders.map(i => {
+                if (P === 0) return 0;
+                return (P + Z * i) / P;
+            });
+            
+            // 计算单元电机数 t
+            let t = 0;
+            if (d !== 0) {
+                if (d % 2 === 0) {
+                    // 当d为偶数时
+                    t = 2 * P / d;
+                } else {
+                    // 当d为奇数时
+                    t = P / d;
+                }
+            }
+            
+            // 更新表格中的值
+            document.getElementById('vz1').textContent = toothHarmonics[0].toFixed(1);
+            document.getElementById('vz2').textContent = toothHarmonics[1].toFixed(1);
+            document.getElementById('vz3').textContent = toothHarmonics[2].toFixed(1);
+            document.getElementById('vz4').textContent = toothHarmonics[3].toFixed(1);
+            document.getElementById('vz5').textContent = toothHarmonics[4].toFixed(1);
+            document.getElementById('vz6').textContent = toothHarmonics[5].toFixed(1);
+            document.getElementById('vz7').textContent = toothHarmonics[6].toFixed(1);
+            document.getElementById('vz8').textContent = toothHarmonics[7].toFixed(1);
+            
+            document.getElementById('tValue').textContent = t;
+            
+            // 生成力波阶次表
+            generateForceWaveTable(Z, P, d, t);
+            // 生成频率表
+            generateFrequencyTable(Z, P, d, t);
+        }
+        
+        function generateForceWaveTable(Z, P, d, t) {
+            // 定子谐波次数k
+            const kValues = [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6];
+            
+            // 计算定子谐波极对数v
+            const vValues = kValues.map(k => {
+                if (d % 2 === 0) {
+                    return (2 * k / d + 1) * P;
+                } else {
+                    return (6 * k + d) * t;
+                }
+            });
+            
+            // 转子谐波次数r
+            const rValues = Array.from({length: 19}, (_, i) => i);
+            
+            // 计算转子谐波极对数u
+            const uValues = rValues.map(r => (2 * r + 1) * P);
+            
+            // 生成表头
+            const tableHead = document.getElementById('forceWaveTableHead');
+            tableHead.innerHTML = '';
+            
+            // 第一行：k值
+            const kRow = document.createElement('tr');
+            kRow.innerHTML = '<th rowspan="2">r</th><th rowspan="2">u</th>';
+            kValues.forEach(k => {
+                kRow.innerHTML += `<th colspan="2">${k}</th>`;
+            });
+            tableHead.appendChild(kRow);
+            
+            // 第二行：v值
+            const vRow = document.createElement('tr');
+            vRow.innerHTML = '';
+            vValues.forEach(v => {
+                vRow.innerHTML += `<th class="v-cell">${v}</th><th class="v-cell">${v}</th>`;
+            });
+            tableHead.appendChild(vRow);
+            
+            // 生成表格内容
+            const tableBody = document.getElementById('forceWaveTableBody');
+            tableBody.innerHTML = '';
+            
+            rValues.forEach((r, index) => {
+                const u = uValues[index];
+                const row = document.createElement('tr');
+                
+                // 第一列：r值
+                row.innerHTML = `<td>${r}</td><td class="u-cell">${u}</td>`;
+                
+                // 计算合成结果
+                vValues.forEach(v => {
+                    let diff, sum;
+                    if (d % 2 === 0) {
+                        // 当d为偶数时，合成公式为u-v和u+v
+                        diff = u - v;
+                        sum = u + v;
+                    } else {
+                        // 当d为奇数时，合成公式为(u-v)*t和(u+v)*t
+                        diff = (u - v) * t;
+                        sum = (u + v) * t;
+                    }
+                    
+                    // 检查值是否在-8到8之间
+                    const diffClass = (diff >= -8 && diff <= 8) ? 'highlight-cell' : '';
+                    const sumClass = (sum >= -8 && sum <= 8) ? 'highlight-cell' : '';
+                    
+                    row.innerHTML += `<td class="${diffClass}">${diff}</td><td class="${sumClass}">${sum}</td>`;
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function generateFrequencyTable(Z, P, d, t) {
+            // 定子谐波次数k
+            const kValues = [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6];
+            
+            // 计算定子谐波极对数v
+            const vValues = kValues.map(k => {
+                if (d % 2 === 0) {
+                    return (2 * k / d + 1) * P;
+                } else {
+                    return (6 * k + d) * t;
+                }
+            });
+            
+            // 转子谐波次数r
+            const rValues = Array.from({length: 19}, (_, i) => i);
+            
+            // 计算转子谐波极对数u
+            const uValues = rValues.map(r => (2 * r + 1) * P);
+            
+            // 生成表头
+            const tableHead = document.getElementById('frequencyTableHead');
+            tableHead.innerHTML = '';
+            
+            // 第一行：k值
+            const kRow = document.createElement('tr');
+            kRow.innerHTML = '<th rowspan="2">r</th><th rowspan="2">u</th>';
+            kValues.forEach(k => {
+                kRow.innerHTML += `<th colspan="2">${k}</th>`;
+            });
+            tableHead.appendChild(kRow);
+            
+            // 第二行：v值
+            const vRow = document.createElement('tr');
+            vRow.innerHTML = '';
+            vValues.forEach(v => {
+                vRow.innerHTML += `<th class="v-cell">${v}</th><th class="v-cell">${v}</th>`;
+            });
+            tableHead.appendChild(vRow);
+            
+            // 生成表格内容
+            const tableBody = document.getElementById('frequencyTableBody');
+            tableBody.innerHTML = '';
+            
+            rValues.forEach((r, index) => {
+                const u = uValues[index];
+                const row = document.createElement('tr');
+                
+                // 第一列：r值
+                row.innerHTML = `<td>${r}</td><td class="u-cell">${u}</td>`;
+                
+                // 计算合成结果
+                vValues.forEach(v => {
+                    // u-v 公式：2*r*p
+                    const diff = 2 * r * P;
+                    // u+v 公式：2*(r+1)*p
+                    const sum = 2 * (r + 1) * P;
+                    row.innerHTML += `<td>${diff}</td><td>${sum}</td>`;
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 初始计算
+        calculate();
+        
+        // 缩放功能 - 力波阶次表
+        let forceWaveZoom = 1;
+        function zoomForceWave(factor) {
+            forceWaveZoom *= factor;
+            document.getElementById('forceWaveTable').style.transform = `scale(${forceWaveZoom})`;
+        }
+        function resetForceWaveZoom() {
+            forceWaveZoom = 1;
+            document.getElementById('forceWaveTable').style.transform = `scale(${forceWaveZoom})`;
+        }
+        
+        // 缩放功能 - 频率表
+        let frequencyZoom = 1;
+        function zoomFrequency(factor) {
+            frequencyZoom *= factor;
+            document.getElementById('frequencyTable').style.transform = `scale(${frequencyZoom})`;
+        }
+        function resetFrequencyZoom() {
+            frequencyZoom = 1;
+            document.getElementById('frequencyTable').style.transform = `scale(${frequencyZoom})`;
+        }
+        
+        // 保存记录功能
+        function saveRecord() {
+            const Z = document.getElementById('slotNumber').value;
+            const P = document.getElementById('polePairs').value;
+            const d = document.getElementById('d').value;
+            
+            const record = {
+                Z: Z,
+                P: P,
+                d: d,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            // 从localStorage获取历史记录
+            let history = JSON.parse(localStorage.getItem('forceWaveHistory') || '[]');
+            
+            // 添加新记录
+            history.unshift(record);
+            
+            // 限制历史记录数量为10条
+            if (history.length > 10) {
+                history = history.slice(0, 10);
+            }
+            
+            // 保存回localStorage
+            localStorage.setItem('forceWaveHistory', JSON.stringify(history));
+            
+            // 更新历史记录显示
+            loadHistory();
+        }
+        
+        // 加载历史记录
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('forceWaveHistory') || '[]');
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>暂无历史记录</p>';
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            
+            history.forEach((record, index) => {
+                const recordElement = document.createElement('div');
+                recordElement.style.marginBottom = '10px';
+                recordElement.style.padding = '10px';
+                recordElement.style.border = '1px solid #ddd';
+                recordElement.style.borderRadius = '4px';
+                recordElement.innerHTML = `
+                    <strong>记录 ${index + 1}</strong> - ${record.timestamp}<br>
+                    Z: ${record.Z}, P: ${record.P}, d: ${record.d}
+                    <button onclick="loadRecord(${index})" style="margin-left: 10px;">加载</button>
+                    <button onclick="deleteRecord(${index})" style="margin-left: 5px;">删除</button>
+                `;
+                historyList.appendChild(recordElement);
+            });
+        }
+        
+        // 加载记录
+        function loadRecord(index) {
+            const history = JSON.parse(localStorage.getItem('forceWaveHistory') || '[]');
+            const record = history[index];
+            
+            if (record) {
+                document.getElementById('slotNumber').value = record.Z;
+                document.getElementById('polePairs').value = record.P;
+                document.getElementById('d').value = record.d;
+                calculate();
+            }
+        }
+        
+        // 删除记录
+        function deleteRecord(index) {
+            let history = JSON.parse(localStorage.getItem('forceWaveHistory') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('forceWaveHistory', JSON.stringify(history));
+            loadHistory();
+        }
+        
+        // 导出表格功能
+        function exportTables() {
+            const Z = document.getElementById('slotNumber').value;
+            const P = document.getElementById('polePairs').value;
+            const d = document.getElementById('d').value;
+            
+            // 生成CSV内容
+            let csvContent = `径向电磁力波阶次数计算表\n`;
+            csvContent += `槽数 Z,${Z}\n`;
+            csvContent += `极对数 P,${P}\n`;
+            csvContent += `每极每相槽数分母 d,${d}\n\n`;
+            
+            // 导出力波阶次表
+            csvContent += `力波阶次表\n`;
+            const forceWaveTable = document.getElementById('forceWaveTable');
+            const forceWaveRows = forceWaveTable.querySelectorAll('tr');
+            
+            forceWaveRows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const rowData = Array.from(cells).map(cell => {
+                    // 去除HTML标签，只保留文本内容
+                    return '"' + cell.textContent.trim() + '"';
+                }).join(',');
+                csvContent += rowData + '\n';
+            });
+            
+            csvContent += '\n';
+            
+            // 导出频率表
+            csvContent += `频率表\n`;
+            const frequencyTable = document.getElementById('frequencyTable');
+            const frequencyRows = frequencyTable.querySelectorAll('tr');
+            
+            frequencyRows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const rowData = Array.from(cells).map(cell => {
+                    // 去除HTML标签，只保留文本内容
+                    return '"' + cell.textContent.trim() + '"';
+                }).join(',');
+                csvContent += rowData + '\n';
+            });
+            
+            // 创建下载链接
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `力波阶次计算_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 页面加载时加载历史记录
+        window.onload = function() {
+            loadHistory();
+        };
+    </script>
+</body>
+</html>
