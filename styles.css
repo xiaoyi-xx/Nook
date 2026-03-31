@@ -302,8 +302,7 @@ body.dark .search-section {
     padding: 10px;
     border: none;
     border-radius: 4px;
-    background-color: white;
-    color: #333;
+    background-color: rgba(249, 249, 249, 0.5);
     outline: none;
 }
 
