@@ -12,7 +12,6 @@ const elements = {
     themeBtn: document.getElementById('theme-btn'),
     searchForm: document.getElementById('search-form'),
     searchInput: document.getElementById('search-input'),
-    searchEngine: document.getElementById('search-engine'),
     bookmarksContainer: document.getElementById('bookmarks-container'),
     staticPagesContainer: document.getElementById('static-pages-container'),
     bookmarkModal: document.getElementById('bookmark-modal'),
@@ -216,6 +215,16 @@ function setupEventListeners() {
     
     // 搜索表单提交
     elements.searchForm.addEventListener('submit', handleSearch);
+    
+    // 搜索输入框点击事件
+    elements.searchInput.addEventListener('click', showSearchHistory);
+    
+    // 点击页面其他地方隐藏历史记录
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container-with-history')) {
+            hideSearchHistory();
+        }
+    });
     
     // 添加收藏按钮
     document.getElementById('add-bookmark-btn').addEventListener('click', openAddBookmarkModal);
@@ -449,16 +458,67 @@ function toggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
+// 保存搜索历史
+function saveSearchHistory(query) {
+    if (!query) return;
+    
+    let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    
+    // 移除重复项
+    history = history.filter(item => item !== query);
+    
+    // 添加到开头
+    history.unshift(query);
+    
+    // 限制最多5条
+    history = history.slice(0, 5);
+    
+    localStorage.setItem('searchHistory', JSON.stringify(history));
+}
+
+// 显示搜索历史
+function showSearchHistory() {
+    const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    const historyContainer = document.getElementById('search-history');
+    
+    historyContainer.innerHTML = '';
+    
+    if (history.length > 0) {
+        history.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'search-history-item';
+            historyItem.textContent = item;
+            historyItem.addEventListener('click', () => {
+                elements.searchInput.value = item;
+                hideSearchHistory();
+                // 触发搜索
+                elements.searchForm.dispatchEvent(new Event('submit'));
+            });
+            historyContainer.appendChild(historyItem);
+        });
+        historyContainer.style.display = 'block';
+    } else {
+        historyContainer.style.display = 'none';
+    }
+}
+
+// 隐藏搜索历史
+function hideSearchHistory() {
+    document.getElementById('search-history').style.display = 'none';
+}
+
 // 处理搜索
 function handleSearch(e) {
     e.preventDefault();
     const query = elements.searchInput.value.trim();
-    const engine = elements.searchEngine.value;
+    const engine = 'bing'; // 固定使用bing搜索引擎
     
     if (query) {
         const searchUrl = searchEngines[engine] + encodeURIComponent(query);
         window.open(searchUrl, '_blank');
+        saveSearchHistory(query);
         elements.searchInput.value = '';
+        hideSearchHistory();
     }
 }
 

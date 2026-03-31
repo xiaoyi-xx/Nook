@@ -41,10 +41,12 @@
             <section class="search-section bg-image-input">
                 <div class="search-container bg-image-input">
                     <form id="search-form">
-                        <select id="search-engine" >
-                            <option value="bing" selected class="bg-image-input2">Bing</option>
-                        </select>
-                        <input type="text" id="search-input" placeholder="输入搜索内容..." class="bg-image-input2">
+                        <div class="search-container-with-history">
+                            <input type="text" id="search-input" placeholder="输入搜索内容..." class="bg-image-input2" autocomplete="off" autocapitalize="off" autocorrect="off">
+                            <div id="search-history" class="search-history">
+                                <!-- 历史记录将通过JS动态生成 -->
+                            </div>
+                        </div>
                         <button type="submit">搜索</button>
                     </form>
                 </div>
