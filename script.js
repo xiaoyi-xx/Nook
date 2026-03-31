@@ -650,9 +650,6 @@ function deleteBookmark(id) {
 
 // 渲染收藏网站
 function renderBookmarks() {
-    // 保存添加按钮
-    const addBookmarkBtn = document.getElementById('add-bookmark-btn');
-    
     // 清空容器
     elements.bookmarksContainer.innerHTML = '';
     
@@ -708,7 +705,32 @@ function renderBookmarks() {
         elements.bookmarksContainer.appendChild(bookmarkItem);
     });
     
-    // 最后添加添加按钮
+    // 最后创建并添加添加按钮
+    const addBookmarkBtn = document.createElement('div');
+    addBookmarkBtn.id = 'add-bookmark-btn';
+    addBookmarkBtn.className = 'bookmark-item add-bookmark';
+    
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'bookmark-actions';
+    
+    const link = document.createElement('a');
+    link.href = 'javascript:void(0)';
+    
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'bookmark-icon';
+    iconDiv.textContent = '+';
+    
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'bookmark-name';
+    nameDiv.textContent = '添加';
+    
+    link.appendChild(iconDiv);
+    link.appendChild(nameDiv);
+    
+    addBookmarkBtn.appendChild(actionsDiv);
+    addBookmarkBtn.appendChild(link);
+    addBookmarkBtn.addEventListener('click', openAddBookmarkModal);
+    
     elements.bookmarksContainer.appendChild(addBookmarkBtn);
 }
 

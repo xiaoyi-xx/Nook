@@ -496,8 +496,18 @@ body.dark .bookmark-item.add-bookmark:hover {
     color: #4a6fa5;
 }
 
+.bookmark-item.add-bookmark .bookmark-name {
+    color: #4a6fa5;
+    font-weight: 600;
+}
+
 body.dark .bookmark-item.add-bookmark .bookmark-icon {
     color: #64b5f6;
+}
+
+body.dark .bookmark-item.add-bookmark .bookmark-name {
+    color: #64b5f6;
+    font-weight: 600;
 }
 
 body.dark .bookmark-item {
