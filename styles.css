@@ -415,6 +415,10 @@ body.dark .bookmarks-section {
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .bookmark-item.add-bookmark {
@@ -502,6 +506,9 @@ body.dark .container.semi-transparent .bookmark-item.add-bookmark {
 .bookmark-name {
     font-weight: 500;
     margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .bookmark-actions {
@@ -561,6 +568,10 @@ body.dark .static-pages-section {
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 body.dark .static-page-item {
@@ -608,6 +619,9 @@ body.dark .static-page-item:hover {
 
 .static-page-name {
     font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 模态框样式 */
