@@ -283,18 +283,36 @@ function setupEventListeners() {
                 }
                 
                 const domain = new URL(fullUrl).origin;
-                const faviconUrl = `${domain}/favicon.ico`;
+                const faviconFormats = ['/favicon.ico', '/favicon.png', '/favicon.svg'];
                 
-                // 检查favicon是否存在
-                const img = new Image();
-                img.onload = function() {
-                    // favicon加载成功，设置到输入框
-                    iconUrlInput.value = faviconUrl;
-                };
-                img.onerror = function() {
-                    // favicon获取失败，保持输入框为空
-                };
-                img.src = faviconUrl;
+                // 尝试多种favicon格式
+                let formatIndex = 0;
+                
+                function tryNextFormat() {
+                    if (formatIndex >= faviconFormats.length) {
+                        // 所有格式都尝试失败，保持输入框为空
+                        return;
+                    }
+                    
+                    const faviconUrl = domain + faviconFormats[formatIndex];
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        // favicon加载成功，设置到输入框
+                        iconUrlInput.value = faviconUrl;
+                    };
+                    
+                    img.onerror = function() {
+                        // 当前格式失败，尝试下一个格式
+                        formatIndex++;
+                        tryNextFormat();
+                    };
+                    
+                    img.src = faviconUrl;
+                }
+                
+                // 开始尝试第一个格式
+                tryNextFormat();
             } catch (error) {
                 // URL解析失败，保持输入框为空
             }
@@ -597,20 +615,39 @@ function handleBookmarkSubmit(e) {
     if (!icon) {
         try {
             const domain = new URL(url).origin;
-            const faviconUrl = `${domain}/favicon.ico`;
-            // 检查favicon是否存在
-            const img = new Image();
-            img.onload = function() {
-                // 如果用户没有自定义图标，使用favicon
-                if (iconType === 'url') {
-                    document.getElementById('bookmark-icon-url').value = faviconUrl;
-                    icon = faviconUrl;
+            const faviconFormats = ['/favicon.ico', '/favicon.png', '/favicon.svg'];
+            
+            // 尝试多种favicon格式
+            let formatIndex = 0;
+            
+            function tryNextFormat() {
+                if (formatIndex >= faviconFormats.length) {
+                    // 所有格式都尝试失败，保持默认图标
+                    return;
                 }
-            };
-            img.onerror = function() {
-                // favicon获取失败，保持默认图标
-            };
-            img.src = faviconUrl;
+                
+                const faviconUrl = domain + faviconFormats[formatIndex];
+                const img = new Image();
+                
+                img.onload = function() {
+                    // 如果用户没有自定义图标，使用favicon
+                    if (iconType === 'url') {
+                        document.getElementById('bookmark-icon-url').value = faviconUrl;
+                        icon = faviconUrl;
+                    }
+                };
+                
+                img.onerror = function() {
+                    // 当前格式失败，尝试下一个格式
+                    formatIndex++;
+                    tryNextFormat();
+                };
+                
+                img.src = faviconUrl;
+            }
+            
+            // 开始尝试第一个格式
+            tryNextFormat();
         } catch (error) {
             // URL解析失败，保持默认图标
         }
