@@ -44,7 +44,7 @@ function loadSettings() {
             document.getElementById('bg-image').value = settings.backgroundImage;
         } else {
             // 设置默认背景图片
-            const defaultBgImage = 'https://picui.ogmua.cn/s1/2026/03/22/69bfc232baee7.webp';
+            const defaultBgImage = '//';
             document.body.style.backgroundImage = `url(${defaultBgImage})`;
             document.getElementById('bg-image').value = defaultBgImage;
             settings.backgroundImage = defaultBgImage;
@@ -52,7 +52,7 @@ function loadSettings() {
         }
     } else {
         // 设置默认背景图片
-        const defaultBgImage = 'https://picui.ogmua.cn/s1/2026/03/22/69bfc232baee7.webp';
+        const defaultBgImage = '//';
         document.body.style.backgroundImage = `url(${defaultBgImage})`;
         document.getElementById('bg-image').value = defaultBgImage;
         const settings = { backgroundImage: defaultBgImage };
