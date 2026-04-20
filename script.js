@@ -230,13 +230,31 @@ function setupEventListeners() {
     document.getElementById('add-bookmark-btn').addEventListener('click', openAddBookmarkModal);
     
     // 关闭模态框
-    elements.closeModal.addEventListener('click', closeBookmarkModal);
-    
-    // 点击模态框外部关闭
-    window.addEventListener('click', (e) => {
-        if (e.target === elements.bookmarkModal) {
+    elements.closeModal.addEventListener('click', function() {
+        // 检查表单是否有未保存的更改
+        const name = elements.bookmarkName.value.trim();
+        const url = elements.bookmarkUrl.value.trim();
+        
+        if (name || url) {
+            if (confirm('您有未保存的更改，确定要关闭吗？')) {
+                closeBookmarkModal();
+            }
+        } else {
             closeBookmarkModal();
         }
+    });
+    
+    // 阻止模态框内容的事件冒泡，防止选中文字时关闭模态框
+    document.querySelector('.modal-content').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+    });
+    
+    document.querySelector('.modal-content').addEventListener('mouseup', (e) => {
+        e.stopPropagation();
+    });
+    
+    document.querySelector('.modal-content').addEventListener('click', (e) => {
+        e.stopPropagation();
     });
     
     // 收藏表单提交
@@ -322,14 +340,31 @@ function setupEventListeners() {
     // 静态页面模态框关闭
     const staticPageModalClose = document.querySelector('#static-page-modal .close');
     if (staticPageModalClose) {
-        staticPageModalClose.addEventListener('click', closeStaticPageModal);
+        staticPageModalClose.addEventListener('click', function() {
+            // 检查表单是否有未保存的更改
+            const name = document.getElementById('static-page-name').value.trim();
+            
+            if (name) {
+                if (confirm('您有未保存的更改，确定要关闭吗？')) {
+                    closeStaticPageModal();
+                }
+            } else {
+                closeStaticPageModal();
+            }
+        });
     }
     
-    // 点击静态页面模态框外部关闭
-    window.addEventListener('click', (e) => {
-        if (e.target === document.getElementById('static-page-modal')) {
-            closeStaticPageModal();
-        }
+    // 阻止静态页面模态框内容的事件冒泡，防止选中文字时关闭模态框
+    document.querySelector('#static-page-modal .modal-content').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+    });
+    
+    document.querySelector('#static-page-modal .modal-content').addEventListener('mouseup', (e) => {
+        e.stopPropagation();
+    });
+    
+    document.querySelector('#static-page-modal .modal-content').addEventListener('click', (e) => {
+        e.stopPropagation();
     });
     
     // 静态页面表单提交
@@ -678,7 +713,8 @@ function handleBookmarkSubmit(e) {
 
 // 删除收藏
 function deleteBookmark(id) {
-    if (confirm('确定要删除这个收藏吗？')) {
+    const confirmed = confirm('确定要删除这个收藏吗？');
+    if (confirmed) {
         bookmarks = bookmarks.filter(b => b.id !== id);
         saveBookmarks();
         renderBookmarks();
