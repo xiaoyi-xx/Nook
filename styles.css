@@ -6,16 +6,16 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f5f5f5;
+    color: #2c3e50;
+    background-color: #f0f2f5;
     transition: all 0.3s ease;
 }
 
 /* 深色模式 */
 body.dark {
-    background-color: #121212;
+    background-color: #0a0e14;
     color: #e0e0e0;
 }
 
@@ -39,52 +39,78 @@ header {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.dark header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    color: #4a6fa5;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body.dark header h1 {
+    color: #64b5f6;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .settings-btn {
     position: absolute;
     top: 25px;
     left: 20px;
-    background: none;
+    background: rgba(74, 111, 165, 0.1);
     border: none;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
     transition: all 0.3s ease;
     z-index: 999;
+    color: #4a6fa5;
+    backdrop-filter: blur(4px);
 }
 
 .settings-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background: rgba(74, 111, 165, 0.2);
+    transform: scale(1.05);
+}
+
+body.dark .settings-btn {
+    color: #64b5f6;
+    background: rgba(100, 181, 246, 0.1);
 }
 
 body.dark .settings-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(100, 181, 246, 0.2);
 }
 
 /* 设置面板 */
 .settings-panel {
     position: fixed;
     top: 0;
-    left: -300px;
-    width: 300px;
+    left: -320px;
+    width: 320px;
     height: 100vh;
-    background-color: rgba(249, 249, 249, var(--container-opacity, 0.8));
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    transition: left 0.3s ease;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1001;
     padding: 20px;
     overflow-y: auto;
 }
 
 body.dark .settings-panel {
-    background-color: #1e1e1e;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    background: rgba(30, 30, 30, 0.9);
+    backdrop-filter: blur(20px);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
 }
 
-/* 确保设置面板在透明模式下也半透明 */
 .container.semi-transparent .settings-panel {
     background-color: rgba(255, 255, 255, 0.5);
 }
@@ -101,18 +127,19 @@ body.dark .container.semi-transparent .settings-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 body.dark .settings-header {
-    border-bottom-color: #333;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
 .settings-header h2 {
     margin: 0;
     color: #4a6fa5;
+    font-size: 1.4rem;
 }
 
 body.dark .settings-header h2 {
@@ -127,14 +154,17 @@ body.dark .settings-header h2 {
     padding: 5px;
     border-radius: 50%;
     transition: all 0.3s ease;
+    color: #666;
 }
 
 .close-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #333;
 }
 
 body.dark .close-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
 }
 
 .settings-content {
@@ -144,18 +174,22 @@ body.dark .close-btn:hover {
 }
 
 #apply-bg-btn {
-    padding: 8px 16px;
-    background-color: #4a6fa5;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4a6fa5, #3a5a85);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
     margin-top: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 #apply-bg-btn:hover {
-    background-color: #3a5a85;
+    background: linear-gradient(135deg, #3a5a85, #2a4a75);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
 }
 
 #opacity {
@@ -174,6 +208,7 @@ body.dark .close-btn:hover {
     display: none;
     z-index: 1000;
     transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
 }
 
 /* 当模态框打开时，后面的元素虚化 */
@@ -195,7 +230,7 @@ body.dark .close-btn:hover {
 
 /* 半透明元素 */
 .container.semi-transparent {
-    border-radius: 8px;
+    border-radius: 12px;
 }
 .bg-image-input {
     background-color: transparent;
@@ -218,35 +253,27 @@ body {
     min-height: 100vh;
 }
 
-body.dark header {
-    border-bottom-color: #333;
-}
-
-header h1 {
-    font-size: 2.5rem;
-    color: #4a6fa5;
-}
-
-body.dark header h1 {
-    color: #64b5f6;
-}
-
 .theme-toggle button {
-    background: none;
+    background: rgba(74, 111, 165, 0.1);
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
+    padding: 8px 12px;
+    border-radius: 10px;
     transition: all 0.3s ease;
 }
 
 .theme-toggle button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background: rgba(74, 111, 165, 0.2);
+    transform: scale(1.1);
+}
+
+body.dark .theme-toggle button {
+    background: rgba(100, 181, 246, 0.1);
 }
 
 body.dark .theme-toggle button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(100, 181, 246, 0.2);
 }
 
 /* 主内容区域 */
@@ -268,9 +295,9 @@ main {
 
 /* 搜索引擎部分 */
 .search-section {
-    background-color: transparent;
-    padding: 20px;
-    border-radius: 8px;
+    background: transparent;
+    padding: 0;
+    border-radius: 12px;
 }
 
 body.dark .search-section {
@@ -290,12 +317,13 @@ body.dark .search-section {
 
 .search-history {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background-color: rgba(249, 249, 249, 0.5);
-    border-radius: 0 0 6px 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     max-height: 200px;
     overflow-y: auto;
     display: none;
@@ -303,22 +331,25 @@ body.dark .search-section {
 }
 
 body.dark .search-history {
-    background-color: #1e1e1e;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: rgba(30, 30, 30, 0.9);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .search-history-item {
-    padding: 10px 15px;
+    padding: 12px 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 14px;
 }
 
 .search-history-item:hover {
-    background-color: #f0f0f0;
+    background-color: rgba(74, 111, 165, 0.08);
+    padding-left: 20px;
 }
 
 body.dark .search-history-item:hover {
-    background-color: #333;
+    background-color: rgba(100, 181, 246, 0.1);
 }
 
 @media (min-width: 600px) {
@@ -374,11 +405,21 @@ body.dark #search-engine {
 
 #search-input {
     flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
+    padding: 14px 18px;
+    border: 2px solid rgba(74, 111, 165, 0.08);
+    border-radius: 12px;
     font-size: 16px;
     outline: none;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+#search-input:focus {
+    border-color: #4a6fa5;
+    box-shadow: 0 4px 16px rgba(74, 111, 165, 0.15);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 #search-input::-moz-selection {
@@ -390,22 +431,39 @@ body.dark #search-engine {
 }
 
 body.dark #search-input {
-    background-color: #333;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
     color: #e0e0e0;
 }
 
+body.dark #search-input:focus {
+    border-color: #64b5f6;
+    box-shadow: 0 4px 16px rgba(100, 181, 246, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+}
+
 #search-form button {
-    padding: 10px 20px;
-    background-color: #4a6fa5;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #4a6fa5, #3a5a85);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 #search-form button:hover {
-    background-color: #3a5a85;
+    background: linear-gradient(135deg, #3a5a85, #2a4a75);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 111, 165, 0.3);
+}
+
+#search-form button:active {
+    transform: translateY(0);
 }
 
 /* 通用区块样式 */
@@ -417,12 +475,31 @@ body.dark #search-input {
 }
 
 .section-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: #4a6fa5;
+    font-weight: 600;
+    position: relative;
+    padding-left: 12px;
+}
+
+.section-header h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(135deg, #4a6fa5, #64b5f6);
+    border-radius: 2px;
 }
 
 body.dark .section-header h2 {
     color: #64b5f6;
+}
+
+body.dark .section-header h2::before {
+    background: linear-gradient(135deg, #64b5f6, #4a6fa5);
 }
 
 .section-header button {
@@ -441,9 +518,9 @@ body.dark .section-header h2 {
 
 /* 收藏网站部分 */
 .bookmarks-section {
-    background-color: transparent;
-    padding: 20px;
-    border-radius: 8px;
+    background: transparent;
+    padding: 0;
+    border-radius: 12px;
 }
 
 body.dark .bookmarks-section {
@@ -457,38 +534,44 @@ body.dark .bookmarks-section {
 }
 
 .bookmark-item {
-    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
     padding: 15px;
-    border-radius: 6px;
+    border-radius: 12px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     height: 120px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .bookmark-item.add-bookmark {
-    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
-    border: 2px dashed #4a6fa5;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    border: 2px dashed rgba(74, 111, 165, 0.4);
     cursor: pointer;
 }
 
 body.dark .bookmark-item.add-bookmark {
-    background-color: #1e3a5f;
-    border-color: #64b5f6;
+    background: rgba(30, 58, 95, 0.3);
+    border-color: rgba(100, 181, 246, 0.4);
 }
 
 .bookmark-item.add-bookmark:hover {
-    background-color: #d4e4fc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: rgba(74, 111, 165, 0.1);
+    border-color: #4a6fa5;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(74, 111, 165, 0.15);
 }
 
 body.dark .bookmark-item.add-bookmark:hover {
-    background-color: #254a7b;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: rgba(100, 181, 246, 0.1);
+    border-color: #64b5f6;
+    box-shadow: 0 8px 24px rgba(100, 181, 246, 0.15);
 }
 
 .bookmark-item.add-bookmark .bookmark-icon {
@@ -511,16 +594,20 @@ body.dark .bookmark-item.add-bookmark .bookmark-name {
 }
 
 body.dark .bookmark-item {
-    background-color: #2d2d2d;
+    background: rgba(45, 45, 45, 0.6);
+    backdrop-filter: blur(8px);
+    border-color: rgba(255, 255, 255, 0.06);
 }
 
 .bookmark-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 body.dark .bookmark-item:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    background: rgba(45, 45, 45, 0.8);
 }
 
 /* 确保图标容器在透明模式下也半透明 */
@@ -559,6 +646,7 @@ body.dark .container.semi-transparent .bookmark-item.add-bookmark {
     width: 40px !important;
     height: 40px !important;
     object-fit: contain;
+    border-radius: 4px;
 }
 
 .bookmark-name {
@@ -576,7 +664,7 @@ body.dark .container.semi-transparent .bookmark-item.add-bookmark {
     display: flex;
     gap: 5px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .bookmark-item:hover .bookmark-actions,
@@ -585,28 +673,50 @@ body.dark .container.semi-transparent .bookmark-item.add-bookmark {
 }
 
 .bookmark-actions button {
-    background: none;
+    background: rgba(0, 0, 0, 0.05);
     border: none;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 3px;
-    transition: background-color 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+    font-weight: 500;
 }
 
 .bookmark-actions button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.bookmark-actions button:first-child {
+    color: #4a6fa5;
+}
+
+.bookmark-actions button:last-child {
+    color: #e74c3c;
+}
+
+body.dark .bookmark-actions button {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 body.dark .bookmark-actions button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+body.dark .bookmark-actions button:first-child {
+    color: #64b5f6;
+}
+
+body.dark .bookmark-actions button:last-child {
+    color: #ff6b6b;
 }
 
 /* 静态页面部分 */
 .static-pages-section {
-    background-color: transparent;
-    padding: 20px;
-    border-radius: 8px;
+    background: transparent;
+    padding: 0;
+    border-radius: 12px;
 }
 
 body.dark .static-pages-section {
@@ -620,20 +730,25 @@ body.dark .static-pages-section {
 }
 
 .static-page-item {
-    background-color: rgba(249, 249, 249, var(--container-opacity, 0.5));
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
     padding: 15px;
-    border-radius: 6px;
+    border-radius: 12px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     height: 120px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 body.dark .static-page-item {
-    background-color: #2d2d2d;
+    background: rgba(45, 45, 45, 0.6);
+    backdrop-filter: blur(8px);
+    border-color: rgba(255, 255, 255, 0.06);
 }
 
 /* 确保静态页面图标容器在透明模式下也半透明 */
@@ -646,12 +761,14 @@ body.dark .container.semi-transparent .static-page-item {
 }
 
 .static-page-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 body.dark .static-page-item:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    background: rgba(45, 45, 45, 0.8);
 }
 
 .static-page-item a {
@@ -673,6 +790,7 @@ body.dark .static-page-item:hover {
     width: 40px !important;
     height: 40px !important;
     object-fit: contain;
+    border-radius: 4px;
 }
 
 .static-page-name {
@@ -692,24 +810,29 @@ body.dark .static-page-item:hover {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
 }
 
 .modal-content {
-    background-color: rgba(249, 249, 249, var(--container-opacity, 0.8));
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(24px);
+    margin: 10% auto;
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 88%;
     max-width: 500px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.dark .modal-content {
-    background-color: #1e1e1e;
-    border-color: #444;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    background: rgba(30, 30, 30, 0.85);
+    backdrop-filter: blur(24px);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* 确保模态框在透明模式下也半透明 */
@@ -722,18 +845,19 @@ body.dark .container.semi-transparent .modal-content {
 }
 
 .close {
-    color: #aaa;
+    color: #999;
     float: right;
     font-size: 28px;
-    font-weight: bold;
+    font-weight: 300;
     cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
 }
 
 .close:hover,
 .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+    color: #333;
+    transform: rotate(90deg);
 }
 
 body.dark .close:hover,
@@ -742,8 +866,10 @@ body.dark .close:focus {
 }
 
 .modal-content h3 {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     color: #4a6fa5;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
 body.dark .modal-content h3 {
@@ -751,22 +877,38 @@ body.dark .modal-content h3 {
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     font-weight: 500;
+    font-size: 14px;
+    color: #555;
+}
+
+body.dark .form-group label {
+    color: #aaa;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 12px 14px;
+    border: 2px solid rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #4a6fa5;
+    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .icon-selector {
@@ -778,26 +920,27 @@ body.dark .modal-content h3 {
 
 .icon-option {
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: white;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
     font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 body.dark .icon-option {
-    background-color: #333;
-    border-color: #444;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .icon-option:hover {
-    background-color: #f0f0f0;
-    transform: scale(1.1);
+    background: rgba(74, 111, 165, 0.1);
+    transform: scale(1.15);
+    border-color: rgba(74, 111, 165, 0.2);
 }
 
 body.dark .icon-option:hover {
-    background-color: #444;
+    background: rgba(100, 181, 246, 0.1);
+    border-color: rgba(100, 181, 246, 0.2);
 }
 
 .icon-option:active {
@@ -806,68 +949,103 @@ body.dark .icon-option:hover {
 
 body.dark .form-group input,
 body.dark .form-group select {
-    background-color: #333;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
     color: #e0e0e0;
+}
+
+body.dark .form-group input:focus,
+body.dark .form-group select:focus {
+    border-color: #64b5f6;
+    box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.1);
 }
 
 #bookmark-form button,
 #static-page-form button {
     width: 100%;
-    padding: 10px;
-    background-color: #4a6fa5;
+    padding: 12px;
+    background: linear-gradient(135deg, #4a6fa5, #3a5a85);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 16px;
-    transition: background-color 0.3s ease;
+    font-weight: 500;
+    transition: all 0.3s ease;
     text-align: center;
-    margin: auto;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 #bookmark-form button:hover,
 #static-page-form button:hover {
-    background-color: #3a5a85;
+    background: linear-gradient(135deg, #3a5a85, #2a4a75);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 111, 165, 0.3);
+}
+
+#bookmark-form button:active,
+#static-page-form button:active {
+    transform: translateY(0);
 }
 
 /* 页脚样式 */
 footer {
-    margin-top: 30px;
+    margin-top: 40px;
     padding-top: 20px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
     text-align: center;
-    color: #666;
+    color: #999;
+    font-size: 13px;
 }
 
 body.dark footer {
-    border-top-color: #333;
-    color: #999;
+    border-top-color: rgba(255, 255, 255, 0.06);
+    color: #666;
 }
 
 /* 响应式设计 */
 @media (max-width: 767px) {
     .container {
-        padding: 10px;
+        padding: 12px;
     }
     
     header h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     
     .section-header h2 {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
     }
     
     .bookmarks-container,
     .static-pages-container {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     }
+
+    .modal-content {
+        margin: 5% auto;
+        padding: 20px;
+        width: 92%;
+    }
 }
 
 /* 动画效果 */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .bookmark-item,
@@ -881,26 +1059,26 @@ body.dark footer {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: transparent;
 }
 
 body.dark ::-webkit-scrollbar-track {
-    background: #1e1e1e;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #888;
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: rgba(0, 0, 0, 0.25);
 }
 
 body.dark ::-webkit-scrollbar-thumb {
-    background: #555;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 body.dark ::-webkit-scrollbar-thumb:hover {
-    background: #777;
+    background: rgba(255, 255, 255, 0.25);
 }
