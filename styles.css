@@ -976,6 +976,7 @@ body.dark .form-group select:focus {
     letter-spacing: 0.5px;
     margin-top: 4px;
     box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
+    margin: auto;
 }
 
 #bookmark-form button:hover,
