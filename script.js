@@ -253,10 +253,6 @@ function setupEventListeners() {
         e.stopPropagation();
     });
     
-    document.querySelector('.modal-content').addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-    
     // 收藏表单提交
     elements.bookmarkForm.addEventListener('submit', handleBookmarkSubmit);
     
@@ -360,10 +356,6 @@ function setupEventListeners() {
     });
     
     document.querySelector('#static-page-modal .modal-content').addEventListener('mouseup', (e) => {
-        e.stopPropagation();
-    });
-    
-    document.querySelector('#static-page-modal .modal-content').addEventListener('click', (e) => {
         e.stopPropagation();
     });
     
