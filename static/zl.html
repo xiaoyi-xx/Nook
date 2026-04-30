@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>织理世界设定集 · 章节画卷</title>
+<style>
+:root{--void:#070b19;--gold:#c9a96e;--pale:#dcc9a0;--txt:#c8bda0;--tx2:#9a8d70;--acc:#e8d580}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--txt);font-family:'Segoe UI','Noto Serif SC','华文楷体','楷体',KaiTi,Georgia,serif;line-height:1.85;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 20% 10%,rgba(13,21,66,.5) 0%,transparent 55%),radial-gradient(ellipse 50% 55% at 80% 85%,rgba(13,21,66,.35) 0%,transparent 50%);animation:drift 20s ease-in-out infinite}
+@keyframes drift{0%,100%{opacity:1}50%{opacity:.65}}
+
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+.container{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:0 1.6rem 5rem}
+
+/* 顶栏 */
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:100;padding:.8rem 1.2rem;background:rgba(7,11,25,.85);border-bottom:1px solid rgba(201,169,110,.1);display:flex;align-items:center;gap:1rem;backdrop-filter:blur(10px);transform:translateY(-100%);transition:transform .4s ease}
+.top-bar.on{transform:translateY(0)}
+.top-bar .title{font-size:.85rem;color:var(--pale);letter-spacing:3px;white-space:nowrap}
+.top-bar .chapter-indicator{font-size:.72rem;color:var(--gold);opacity:.7;letter-spacing:2px;transition:all .5s ease}
+.top-bar .dots{display:flex;gap:5px;margin-left:auto}
+.top-bar .dots span{width:6px;height:6px;border-radius:50%;background:rgba(201,169,110,.2);transition:all .4s ease;cursor:pointer}
+.top-bar .dots span.active{background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.progress-line{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--acc),var(--gold));background-size:200% 100%;animation:shimmer 4s linear infinite;z-index:101;width:0%;transition:width .15s linear}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* === 页面容器 === */
+.page-wrapper{position:relative}
+.chapter-page{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:6rem 0 4rem;position:relative;border-bottom:1px solid rgba(201,169,110,.06)}
+.chapter-page:last-child{border-bottom:none}
+
+.page-num{font-size:.65rem;letter-spacing:4px;color:var(--gold);opacity:.4;margin-bottom:.5rem;transition:opacity .6s ease}
+.page-num.lit{opacity:.8}
+h2{font-size:1.7rem;font-weight:400;letter-spacing:4px;color:var(--pale);margin-bottom:1.5rem;padding-bottom:.8rem;position:relative;opacity:0;transform:translateY(20px);transition:opacity .8s ease,transform .8s ease}
+h2.seen{opacity:1;transform:translateY(0)}
+h2::after{content:'';position:absolute;bottom:0;left:0;height:1px;width:0;background:linear-gradient(90deg,var(--gold),transparent 80%);transition:width 2s ease .2s}
+h2.seen::after{width:100%}
+
+h3{font-size:1.15rem;font-weight:500;color:var(--gold);margin:2rem 0 .7rem;letter-spacing:2px;opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+h3.seen{opacity:1;transform:translateY(0)}
+h3::before{content:'◇ ';font-size:.45rem;vertical-align:middle;opacity:.5}
+h4{font-size:1rem;font-weight:600;color:var(--acc);margin:1.3rem 0 .5rem;letter-spacing:1px;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
+h4.seen{opacity:1;transform:translateY(0)}
+
+p{margin:.6rem 0;text-align:justify;opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+p.seen{opacity:1;transform:translateY(0)}
+strong{color:var(--acc);font-weight:600}
+ul,ol{margin:.7rem 0 .7rem 1.8rem;opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+ul.seen,ol.seen{opacity:1;transform:translateY(0)}
+li{margin:.3rem 0;transition:transform .25s ease,color .3s ease}
+li:hover{transform:translateX(4px);color:var(--pale)}
+
+.tbl-wrap{margin:1.3rem 0;opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease;border:1px solid rgba(201,169,110,.1);overflow-x:auto}
+.tbl-wrap.seen{opacity:1;transform:translateY(0)}
+table{width:100%;border-collapse:collapse;font-size:.86rem;background:rgba(10,14,30,.45)}
+th{background:rgba(201,169,110,.06);color:var(--gold);font-weight:500;letter-spacing:2px;padding:.6rem .7rem;text-align:left;border-bottom:1px solid rgba(201,169,110,.12);font-size:.76rem}
+td{padding:.5rem .7rem;border-bottom:1px solid rgba(201,169,110,.04);vertical-align:top;transition:background .3s ease}
+tr:hover td{background:rgba(201,169,110,.04)}
+tr:last-child td{border-bottom:none}
+
+.ending{text-align:center;opacity:0;transform:translateY(16px);transition:opacity .8s ease,transform .8s ease}
+.ending.seen{opacity:1;transform:translateY(0)}
+.ending p{opacity:1;transform:none;font-size:.9rem;letter-spacing:2px;color:var(--tx2)}
+.ending .last{font-size:1rem;color:var(--gold)}
+
+.glow-cursor{position:fixed;pointer-events:none;z-index:9999;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(201,169,110,.05) 0%,transparent 70%);transform:translate(-50%,-50%);mix-blend-mode:screen;opacity:0;transition:opacity .5s ease}
+.glow-cursor.on{opacity:1}
+
+/* 翻页提示 */
+.scroll-hint{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:50;text-align:center;opacity:0;transition:opacity .5s ease}
+.scroll-hint.show{opacity:.5}
+.scroll-hint span{display:block;font-size:.7rem;color:var(--gold);letter-spacing:3px;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+@media(max-width:600px){
+  .container{padding:0 1rem 4rem}
+  h2{font-size:1.5rem;letter-spacing:2px}
+  .top-bar .dots{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  h2,h3,h4,p,ul,ol,.tbl-wrap,.ending{opacity:1!important;transform:none!important}
+}
+
+/* === 封面 === */
+.cover-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;text-align:center}
+
+/* 顶部装饰纹 */
+.cover-ornament-top{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:2rem;opacity:0;animation:coverLineExpand 2s ease-out .3s forwards}
+.cover-ornament-top::after{content:'◇ ◇ ◇';display:block;text-align:center;color:var(--gold);font-size:.5rem;letter-spacing:8px;margin-top:-8px;opacity:.6}
+
+.cover-symbol{display:none}
+
+/* 标题 —— 异世界风格 */
+.cover-title{font-size:clamp(2.8rem,7vw,4rem);font-weight:400;letter-spacing:18px;margin-top:0;line-height:1.1;font-family:'Noto Serif SC','华文楷体','楷体',KaiTi,'SimSun',serif}
+.cover-title .cover-char{display:inline-block;opacity:0;animation:coverCharIn .6s ease-out forwards;filter:blur(4px);-webkit-background-clip:text;background-clip:text;color:transparent;background-image:linear-gradient(180deg,#f0e6c8 0%,#c9a96e 40%,#8b783a 70%,#dcc9a0 100%);-webkit-text-fill-color:transparent;text-shadow:none;position:relative}
+.cover-title .cover-char::after{content:attr(data-char);position:absolute;top:1px;left:0;color:transparent;text-shadow:0 0 30px rgba(201,169,110,.6),0 0 60px rgba(201,169,110,.3),0 2px 4px rgba(0,0,0,.5);-webkit-text-fill-color:transparent;z-index:-1}
+@keyframes coverCharIn{0%{opacity:0;transform:translateY(-30px) scale(.85);filter:blur(4px)}60%{opacity:1;transform:translateY(4px) scale(1.03);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+
+.cover-sub{color:var(--tx2);font-size:.85rem;letter-spacing:8px;margin-top:1.5rem;opacity:0;animation:fadeInC 1.5s ease-out 1s forwards;font-variant:small-caps}
+@keyframes fadeInC{to{opacity:.7}}
+
+/* 底部装饰纹 */
+.cover-line{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:2.5rem auto;opacity:0;animation:coverLineExpand 2s ease-out 1.5s forwards}
+.cover-line::after{content:'⟡';display:block;text-align:center;color:var(--gold);font-size:1rem;margin-top:-10px;opacity:.5}
+
+@keyframes coverLineExpand{to{width:160px;opacity:.6}}
+.cover-scroll{opacity:0;animation:fadeInC 1.5s ease-out 2.5s forwards;color:var(--gold);font-size:.7rem;letter-spacing:3px}
+.cover-scroll span{display:block;animation:coverBob 2s ease-in-out infinite}
+@keyframes coverBob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+@media(prefers-reduced-motion:reduce){
+  .cover-char{opacity:1!important;filter:none!important;transform:none!important}
+  .cover-line{width:120px!important;opacity:.6!important}
+  .cover-scroll,.cover-sub{opacity:.7!important}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="glow-cursor" id="glowCursor"></div>
+<div class="progress-line" id="progressLine"></div>
+
+<div class="top-bar" id="topBar">
+  <span class="title">织 理 世 界</span>
+  <span class="chapter-indicator" id="chapLabel">卷 一</span>
+  <span class="dots" id="dotNav"></span>
+</div>
+
+<div class="container">
+
+<div class="page-wrapper">
+
+<!-- ===== 封面 ===== -->
+<div class="cover-page" data-chapter="-1">
+  <div class="cover-ornament-top"></div>
+  <div class="cover-title">
+    <span class="cover-char" data-char="织">织</span><span class="cover-char" data-char="理">理</span><span class="cover-char" data-char="世">世</span><span class="cover-char" data-char="界">界</span>
+  </div>
+  <div class="cover-sub">设 定 集</div>
+  <div class="cover-line"></div>
+  <div class="cover-scroll"><span>▼ 滑 动 翻 阅 ▼</span></div>
+</div>
+
+<!-- ===== 一 ===== -->
+<div class="chapter-page" data-chapter="0">
+<div class="page-num">卷 一</div>
+<h2>世界本源：织理</h2>
+<p>织理不是神，不是意识，不是任何人格化的存在。它是构成万物的无形之网，是物质、能量、规律本身的三位一体。山川星辰、草木众生、时空流转，都是这张网上或疏或密的丝线。</p>
+<p>织理于宇宙冷却时自然形成，如同水冷却至零度必然结冰。它没有目的，没有意志，不回应祈祷，不施加惩罚。它只是存在。</p>
+<h3>三大权能</h3>
+<p>织理的运行自动产生三种基本功能，被称为"权能"。权能不属于任何个体，如同潮汐不属于任何神。</p>
+<p><strong>存在维持</strong>：织理让世界保持"存在"这个状态。物质的形态、能量的流向、时空的结构——这些都是织理的自然属性。</p>
+<p><strong>因果执行</strong>：织理保证"原因导致结果"持续生效。火会燃烧、水会流动、时间向前——这些都是织理的自动运行。</p>
+<p><strong>信息记录</strong>：织理中储存着所有发生过的事件的痕迹。贤者能感知这些痕迹，是因为感知力够深，而非得到"神启"。</p>
+<p>人们通过技能和知识<strong>借用</strong>这些权能。施法者是找到了触发因果链的正确方式，如同点燃引信的人没有"掌握"火药。理解织理最深的人，仍然是织理的使用者，而非掌控者。</p>
+</div>
+
+<!-- ===== 二 ===== -->
+<div class="chapter-page" data-chapter="1">
+<div class="page-num">卷 二</div>
+<h2>能量本源：原始之海</h2>
+<p>一切能量的终极来源只有一个：原始之海。</p>
+<p>它不是海洋，不是空间，而是更高维度的纯能量场，无限大，无限密，没有边界，没有形态，没有时间。原始之海本身就是能量——纯粹的、未分化的、永恒的。</p>
+<p>织理悬浮在原始之海之上，是原始之海与物质世界之间的那层膜。原始之海的能量通过织理渗透进物质世界，分化为三条路径：</p>
+<p><strong>自由弥散</strong>：渗透进来的能量均匀弥散在空气中，成为法师施法时调用的魔力来源。</p>
+<p><strong>物质结晶</strong>：能量与特定物质共振，嵌入物质结构内部，形成辉光晶矿、寒铁、地脉晶粉等含能材料。</p>
+<p><strong>生命转化</strong>：生物在生命活动中持续吸收弥散能量，支撑生命运转，也支撑武力亲和使用者的斗气转化。</p>
+<h3>源质</h3>
+<p>源质是最接近原始之海本态的形态——尚未被织理完全分化的能量，无属性，高稳定性，高可塑性。</p>
+<h3>六属性能量</h3>
+<p>原始之海的无属性能量经织理分化后，形成六种属性频率：光、暗、火、水、风、地。</p>
+<p><strong>生克关系</strong>（基于织理层面的能量谐振规律）：</p>
+<ul>
+<li><strong>光克暗</strong>：光的织理波动频率破坏暗属性法术的结构稳定性</li>
+<li><strong>暗消解光</strong>：足够浓郁的暗可以吞噬光，制造无光区域</li>
+<li><strong>水克火</strong>：水系法术直接扑灭火焰，潮湿环境火系威力减弱</li>
+<li><strong>火反制水</strong>：超高热可瞬间蒸发小范围水系防御（消耗巨大）</li>
+<li><strong>风克地</strong>：风刃可穿透和切割地的致密结构</li>
+<li><strong>地反制风</strong>：密闭空间中地系防御可完全封死空气流动</li>
+</ul>
+</div>
+
+<!-- ===== 三 ===== -->
+<div class="chapter-page" data-chapter="2">
+<div class="page-num">卷 三</div>
+<h2>力量体系与职业</h2>
+<h3>力量亲和</h3>
+<p>一个人拥有哪种力量亲和，决定了能进入哪个大方向。大多数人只拥有一种亲和。拥有两种是天赋异禀，三种以上极为罕见。人类是唯一被记录拥有全部六大亲和的种族。</p>
+<h3>魔法亲和</h3>
+<p>拥有魔法亲和的人，大方向是法师。根据专攻的技能领域产生职业细分。</p>
+<p><strong>学院派路径</strong>：</p>
+<ul>
+<li><strong>塑能法师</strong>：元素操控（火/冰/雷/力场等），最常见的法师类型</li>
+<li><strong>幻术法师</strong>：制造幻象、操控认知</li>
+<li><strong>死灵法师</strong>：亡者残响，合法研究需死者生前同意</li>
+<li><strong>防护法师</strong>：结界与护盾，反制魔法、守护法阵</li>
+<li><strong>咒法法师</strong>：召唤与传送，传送阵核心技术人员</li>
+<li><strong>预言法师</strong>：信息获取，概率测算、远程感知</li>
+<li><strong>惑控法师</strong>：心智影响，受严格法律监管</li>
+<li><strong>变化法师</strong>：物质形态改变，变形术、材质转化</li>
+</ul>
+<p>多学派融合者称为<strong>织网者</strong>（大法师）。顶点为<strong>贤者</strong>（星辰之触），现役人数不超过五人。</p>
+<p><strong>应用技术路径</strong>：</p>
+<ul>
+<li><strong>符文师</strong>：符文铭刻，将法术固化于器物，矮人倾向</li>
+<li><strong>阵法师</strong>：区域法阵，以源质为基础，大范围持久魔法</li>
+<li><strong>炼金术士</strong>：物质转化，制药、转化、爆破三大分支</li>
+<li><strong>魔药师</strong>：草药共鸣，最平民的魔法职业，经验配方</li>
+<li><strong>幻术师</strong>：认知编织，表演/谍报/治疗三条路线</li>
+<li><strong>星相师</strong>：星辰投影解读，罕见天赋，观测未来概率</li>
+</ul>
+<h3>武力亲和</h3>
+<p>拥有武力亲和的人，大方向是战士。</p>
+<ul>
+<li><strong>骑士</strong>：武器技艺+织理誓言，立誓获得加护，四誓约分支（秩序/守护/惩戒/探索）</li>
+<li><strong>武者</strong>：徒手/近战技艺，四大流派（崩山流/流水心/影步/淬火手）</li>
+<li><strong>狂战士</strong>：狂化控制，献祭理智换战力，兽人倾向</li>
+<li><strong>猎人</strong>：怪物追踪+特殊猎杀，对非人威胁专家</li>
+</ul>
+<h3>契约亲和</h3>
+<p>拥有契约亲和的人，大方向是契法使。</p>
+<ul>
+<li><strong>契约术士</strong>：与高等存在（龙、元素领主、精类）对等契约</li>
+<li><strong>德鲁伊</strong>：与一片区域缔约，领域内力量倍增</li>
+<li><strong>萨满</strong>：与祖灵缔约，兽人倾向，先祖附体</li>
+<li><strong>缚灵师</strong>：与游离灵体短期或长期灵缚</li>
+<li><strong>同契者</strong>：与另一个活人双向生命共享</li>
+<li><strong>血脉术士</strong>：血源继承（不主动缔约），龙血/精类血/元素血/灵血</li>
+</ul>
+<h3>技艺亲和</h3>
+<ul>
+<li><strong>暗杀者</strong>：隐匿+暗杀契约，毒性/潜行/伪装专精</li>
+<li><strong>舞者</strong>：织舞领域控制，宫廷舞/战舞/祭舞</li>
+</ul>
+<h3>锻造亲和</h3>
+<ul>
+<li><strong>锻魂师</strong>：灵魂锻造，矮人独占，铸造活体魔像意识</li>
+<li><strong>奇械师</strong>：不可能机械，地精独占，奇想火花驱动</li>
+<li><strong>锻造符文师</strong>：器物附魔+魔像外壳，符文师的锻造侧重</li>
+</ul>
+<h3>异质亲和</h3>
+<ul>
+<li><strong>牧树者</strong>：与世界树共生，精灵独占</li>
+<li><strong>灵缚者</strong>：与动物氏族血脉共享，兽人独占</li>
+</ul>
+<h3>根源感知</h3>
+<p>根源感知是所有法系职业共通的精神力天赋维度，不是某个职业的特性。它决定了一个施法者与织理本源直接沟通的先天能力。</p>
+<div class="tbl-wrap"><table>
+<tr><th>层级</th><th>表现</th><th>职业天花板</th></tr>
+<tr><td>零级</td><td>完全无法感知织理</td><td>无法成为法系职业</td></tr>
+<tr><td>一级</td><td>模糊感知，无法稳定操纵</td><td>仅魔药师可达低阶</td></tr>
+<tr><td>二级</td><td>清晰感知，标准魔力操纵</td><td>可达专家阶（四阶），不可达贤者</td></tr>
+<tr><td>三级</td><td>感知织理倾向</td><td>可修炼至贤者</td></tr>
+<tr><td>四级</td><td>直接"听到"织理语言</td><td>可学真名文字与真名言说</td></tr>
+</table></div>
+<p>四级感知者（根源语者）可使用<strong>真名文字</strong>——织理自身的语言。真名文字是织理概念的原始符号，不是人类发明。根源语者不是独立职业，可以是任何法系职业者。全大陆不超过五十人。</p>
+<h3>职业晋升认证</h3>
+<p><strong>三项通用指标</strong>：储备量（能量总量）、承载度（身体承受力）、凝练度（精细控制力）。</p>
+<p>晋升阶梯：初阶（学徒）→ 二阶（正式）→ 三阶（高级）→ 四阶（专家）→ 顶点（大师）。认证机构为<strong>贤者评议会</strong>，独立于任何国家，通过标准化检测完成认证。</p>
+<h3>职业与阵营</h3>
+<p>职业由个人力量亲和决定，阵营由个人选择决定。一个人可同时拥有职业和阵营身份。主要阵营包括：冒险者公会、骑士团、奥术学院、法师协会、猎人公会、德鲁伊环、地精大工程师协会、暗杀者行会、萨满祖堂、共同体联席会议。</p>
+</div>
+
+<!-- ===== 四 ===== -->
+<div class="chapter-page" data-chapter="3">
+<div class="page-num">卷 四</div>
+<h2>种族</h2>
+<h3>主要种族</h3>
+<p><strong>人类（适应之弦）</strong>：遍布全大陆，寿命约70-90年，通用语觉醒12-16岁，无独占职业（可塑性最强，唯一被记录拥有全部六大亲和的种族）。</p>
+<p><strong>精灵（共鸣之弦）</strong>：集中在翠叶大陆千灵之森，寿命数千年至上万年，通用语觉醒50-80岁，独占职业牧树者。分支：辉石精灵、翠叶同胞、月影精灵。</p>
+<p><strong>矮人（构筑之弦）</strong>：全大陆主要山脉中，寿命约200-300年，通用语觉醒20-30岁，独占职业锻魂师。分支：霜钢矮人、辉石矮人、岩心矮人（极深地底）。</p>
+<p><strong>兽人（野性之弦）</strong>：呼嚎草原及周边，寿命约50-70年，通用语觉醒8-12岁（最早），独占职业灵缚者。分支：草原、苔原、森林、沙兽人。</p>
+<p><strong>地精（奇想之弦）</strong>：散布全大陆，寿命约40-60年，通用语觉醒极不稳定，独占职业奇械师。以大工程师协会为纽带。</p>
+<h3>种族关系</h3>
+<p>友好：人类-矮人、人类-地精、精灵-兽人、矮人-精灵。冷淡/摩擦：辉石人类vs翠叶精灵（生态理念）、定居人类vs游牧兽人（土地用途）。历史对立：人类-兽人（四百年前草场纠纷，已和解）、矮人-地精（两百年前矿脉炸毁事故）、精灵-地精（纯文化摩擦）。所有对立都有具体历史原因，而非天生敌对。</p>
+<h3>非类人智慧种族</h3>
+<div class="tbl-wrap"><table>
+<tr><th>种族</th><th>原初形态</th><th>化形方式</th><th>核心能力</th></tr>
+<tr><td>巨龙</td><td>大型有翼爬行生物</td><td>织理塑形（压缩体型）</td><td>天生魔力耐性、飞行、长寿</td></tr>
+<tr><td>凤凰</td><td>大型鸟类（金红羽）</td><td>光折射投影+自愿附身</td><td>涅槃新生、部分记忆传承</td></tr>
+<tr><td>树精</td><td>植物共生意识体</td><td>木质纤维编织化身</td><td>森林感知、生态优化</td></tr>
+<tr><td>梦貘</td><td>梦境夹缝中的貘形生物</td><td>不可化形（只存在梦境）</td><td>噬梦（消除噩梦）</td></tr>
+<tr><td>深海巨章</td><td>深海巨型软体动物</td><td>触手末端拟态</td><td>深压场、多触手多任务</td></tr>
+</table></div>
+<h3>幻想存在</h3>
+<div class="tbl-wrap"><table>
+<tr><th>名称</th><th>居所</th><th>已知能力</th><th>核心限制</th></tr>
+<tr><td>织潮水母</td><td>织理之海最深处</td><td>被动平复织理波动</td><td>只在深海存活，不可接触</td></tr>
+<tr><td>镜灵</td><td>一切反射面中</td><td>镜界行走，真相反射</td><td>不能离开反射面，怕绝对黑暗</td></tr>
+<tr><td>影翳</td><td>阴影夹层</td><td>阴影侵蚀，信息窃取</td><td>不能接触强光，不识抽象信息</td></tr>
+<tr><td>石语者</td><td>深层岩体结晶</td><td>地质记忆</td><td>时间尺度不对等，只能被动回应</td></tr>
+<tr><td>星遗</td><td>星空外层</td><td>概率偏转（极有限度）</td><td>不能回溯已观测事件，不能创造可能</td></tr>
+</table></div>
+<h3>种族关系</h3>
+<h4>友好关系</h4>
+<p><strong>人类 — 矮人</strong>：合作最为频繁。人类的适应性与矮人的专业深度互补。辉石盟是人类与辉石矮人共建的文化共同体。</p>
+<p><strong>人类 — 地精</strong>：绝大部分地精住在人类城镇中，关系"友好，但需要安全距离"。</p>
+<p><strong>精灵 — 兽人</strong>：千灵之森边缘的森林兽人与精灵共同维护生态，翠叶共环联席会议上兽人代表席位的历史比人类更久。</p>
+<p><strong>矮人 — 精灵</strong>：有古老友谊，日常互动较少，但矮人符文师与精灵牧树者在特殊工具制造上密切协作。</p>
+<p><strong>兽人 — 矮人</strong>：苔原兽人的猛犸产品与霜钢矮人的金属制品长期交换，关系务实而友好。</p>
+<h4>冷淡或存在摩擦的关系</h4>
+<p><strong>辉石人类 — 翠叶精灵</strong>：不是对立，但有紧张。城市化与生态保护理念冲突，在联席会议上反复辩论。</p>
+<p><strong>人类 — 兽人（特定情况）</strong>：草原边缘的农业共同体与游牧兽人偶尔因土地用途产生纠纷，由德鲁伊环仲裁。</p>
+<p><strong>辉石矮人 — 辉石精灵</strong>：数千年前有过担忧，如今已是友好邻居，偶有老矮人酒后重提旧事。</p>
+<h4>存在显著对立的历史关系</h4>
+<p><strong>人类 — 兽人（历史冲突）</strong>：约四百年前因草场开垦发生武装冲突，各伤亡百余人。经调解后划定缓冲绿带，每年冲突日举行联合纪念，已恢复正常往来。</p>
+<p><strong>矮人 — 地精（信任危机）</strong>：约两百年前地精实验引发矿脉城大爆炸，矮人因此禁止地精进入核心锻造区。地精社区公认此限制合情合理。</p>
+<p><strong>精灵 — 地精（轻微不适）</strong>：纯文化摩擦。精灵不适于地精发明的随机性，地精觉得精灵决策太慢。审查机制运行良好，实际冲突罕见。</p>
+<h4>种族对立的性质</h4>
+<ol>
+<li><strong>历史对立不等于现代仇恨。</strong>人类与兽人四百年前的冲突是历史教训，涉事区域每年举办和解纪念。当代冒险者小队中跨种族合作是常态。</li>
+<li><strong>所有对立都有具体历史原因。</strong>每个重大摩擦背后都有明确的事件、日期和起因，而非天生敌对。</li>
+<li><strong>存在制度化的和解机制。</strong>德鲁伊环、贤者评议会、联席会议中的跨种族调解程序有成功阻止潜在冲突的实例。</li>
+<li><strong>日常摩擦不表现为暴力对立。</strong>个别酒馆拒绝服务属私人商业行为，更多情况是不同种族以个人名义合作。</li>
+</ol>
+<h4>非类人智慧种族与大陆文明的关系</h4>
+<p><strong>巨龙</strong>：绝大多数不介入大陆事务，极少数千年以上老龙成为契约术士的宗主。</p>
+<p><strong>凤凰</strong>：极其稀少，不担任契约宗主，与人类关系像"友善的邻居"，偶尔在极寒中留下不知来源的火堆。</p>
+<p><strong>树精</strong>：翠叶共环正式公民，有精类代表席。少数独居在其他大陆古老林地，与当地居民保持邻里信任。</p>
+<p><strong>梦貘</strong>：与文明无接触，仅在极少数噩梦中被瞥见安静的身影。</p>
+<p><strong>深海巨章</strong>：无可验证的交流记录，水手相信它们知道海洋的所有秘密。</p>
+<h4>幻想存在与文明的关系</h4>
+<p><strong>织潮水母</strong>：完全独立，无互动。</p>
+<p><strong>镜灵</strong>：无法直接沟通，星相师工坊中常有常驻镜灵，互不干扰。</p>
+<p><strong>影翳</strong>：暗杀者行会与它们有不成文的默契，它们只旁观不干预，收集信息目的不明。</p>
+<p><strong>石语者</strong>：仅岩心矮人能通过极缓慢的共振"交流"，地表居民认知为零。</p>
+<p><strong>星遗</strong>：仅星相师能间接观测到其投影，对大陆的影响停留在统计层面。</p>
+</div>
+
+<!-- ===== 五 ===== -->
+<div class="chapter-page" data-chapter="4">
+<div class="page-num">卷 五</div>
+<h2>地理</h2>
+<h3>天文参数</h3>
+<p>一个太阳，一个月亮，一天约二十四小时，一年约三百六十五天，四季分明。历法与地球一致。</p>
+<h3>织理之海</h3>
+<p>覆盖世界表面大部分的水体，洋流和风向受织理密度影响。海面上散布六大陆和无数岛屿。</p>
+<h3>辉石大陆（东部）</h3>
+<p>辉石盟所在地，学术与秩序的中心。高原为主，气候干燥凉爽，四季分明。特色资源辉光晶矿（储存魔力）。地标：奥术学院主塔、回音堡。</p>
+<h3>霜钢大陆（北部）</h3>
+<p>霜钢盟所在地，实用主义的严寒之地。高纬度大陆，冬季漫长严寒，山脉纵贯。特色资源寒铁（天然免疫火焰）。地标：龙骨船坞、长暖堂。</p>
+<h3>翠叶大陆（西部）</h3>
+<p>翠叶共环所在地，生态至上的森林大陆。温带至亚热带森林覆盖，温暖湿润。特色资源活木、珍稀药材。地标：千灵之森核心区、共生道。</p>
+<h3>赤砂大陆（南部）</h3>
+<p>赤砂链所在地，贸易至上的沙漠大陆。热带沙漠为主，散布绿洲，有可航行的流沙河。特色资源香料、丝绸、稀有施法材料。地标：沙舟之海、商王石。</p>
+<h3>灰烬群岛（东南海域）</h3>
+<p>多族混居的实验性社会，火山列岛。数十个火山岛组成，特色资源火山矿物、地热能源。开发历史约四百年，是六大陆中最"新"的定居地。</p>
+<h3>龙骨荒原（极北）</h3>
+<p>远古战场，巨龙坟场。比霜钢大陆更寒冷的极北冰原，特色资源龙骨化石（极为稀有，限制开采）。贤者评议会严格限制开采，仅有条件发放勘探许可。</p>
+<h3>无管理地区</h3>
+<ul>
+<li><strong>废铁荒原</strong>（赤砂链与辉石盟交界）：古奇械实验失败产物，寸草不生，地精视为试验场</li>
+<li><strong>嚎风苔原</strong>（霜钢盟以北）：永冻苔原，传言有远古存在蛰伏</li>
+<li><strong>棘海</strong>（大陆西侧外海群岛）：血棘遍布，施法者禁区，有少量自由民定居</li>
+<li><strong>深地</strong>（地下）：未被完全探明，岩心矮人据说住在最深处</li>
+</ul>
+</div>
+
+<!-- ===== 六 ===== -->
+<div class="chapter-page" data-chapter="5">
+<div class="page-num">卷 六</div>
+<h2>国家与政治</h2>
+<h3>国家定义</h3>
+<p>"国家"即共同体联盟——在特定地理范围内，由多个自治共同体通过长期协议形成的联合体。最高决策机构是全国联席会议，由地方共同体代表、各职业公会代表、及受邀专家共同组成。法律被协商通过，而非颁布。没有国王，没有贵族，没有常任领袖。协调人任期固定，可随时被召回。</p>
+<h3>辉石盟</h3>
+<p>运行逻辑：学术优先。法律特色：《知识共享法》——公共资金支持的研究成果必须公开；《矿区共同体自治法》——矿脉公有。风俗：学徒日（每年秋季学院开放周）、辩论传统。氛围：崇尚学术，重视秩序。</p>
+<h3>霜钢盟</h3>
+<p>运行逻辑：实用至上。法律特色：《资源配给法》——冬季物资统一调度；《互助义务法》——成年公民每年完成公共劳动。风俗：冬季共居、龙骨船坞集市、寒铁锻剑仪式。氛围：务实、直率。</p>
+<h3>翠叶共环</h3>
+<p>运行逻辑：生态平衡优先。法律特色：《生态影响评估法》——新项目必须通过评估；《活木利用法》——砍伐需补种，禁砍古木。风俗：林冠议会、生根节。氛围：宁静、尊崇自然。</p>
+<h3>赤砂链</h3>
+<p>运行逻辑：贸易自治。法律特色：《贸易自由法》——不设关税壁垒；《契约执行法》——违约者全链追索。风俗：沙舟节、契约酒、绿洲待客传统。氛围：自由、商业、灵活性高。</p>
+<h3>跨国家事务</h3>
+<p>四大盟之间不存在战争——贸易依存度太高。跨国家协调机制包括贤者评议会（学术和职业认证终审权）、德鲁伊环（跨生态区域调解）、跨盟仲裁合议庭（司法交叉案件）和四盟联席会议（共同出资的基建项目管理）。</p>
+<h3>权力结构</h3>
+<p>织理是绝对的制衡——纹账记录不可篡改，契约备案让违约在技术上无法掩盖。联席会议成员构成：职业顶尖（有力量亲和的持证职业者代表）与行业顶尖（无力量亲和的行业代表，如外科医师、工程师、农艺师等）享有完全同等的表决权。协调人任期因共同体而异，可由推举其产生的联席会议要求提前罢免。</p>
+</div>
+
+<!-- ===== 七 ===== -->
+<div class="chapter-page" data-chapter="6">
+<div class="page-num">卷 七</div>
+<h2>历史年表</h2>
+<div class="tbl-wrap"><table>
+<tr><th>时间</th><th>事件</th></tr>
+<tr><td>不可考</td><td>织理自然形成</td></tr>
+<tr><td>前约100万年</td><td>织潮水母在深海中自发形成</td></tr>
+<tr><td>前约80万年</td><td>深海巨章开始演化</td></tr>
+<tr><td>前约30万年</td><td>巨龙演化出现，进入松散独居时代</td></tr>
+<tr><td>前约10万年</td><td>凤凰、树精出现。石语者在深层岩体中凝聚</td></tr>
+<tr><td>前约5万年</td><td>精灵起源，首个能主动感知织理的类人种族</td></tr>
+<tr><td>前约3万年</td><td>精灵文明诞生，最早德鲁伊术和原始魔法萌芽</td></tr>
+<tr><td>前约2万年</td><td>牧树者诞生。影翳在织理信息层中自发涌现</td></tr>
+<tr><td>前约15000年</td><td>矮人分支在山区形成，开始地下矿业</td></tr>
+<tr><td>前约12000年</td><td>兽人分支在草原形成，灵缚起源</td></tr>
+<tr><td>前约10000年</td><td>地精分支突变，奇想火花产生</td></tr>
+<tr><td>前约8000年</td><td>人类大扩散，全方位吸收其他种族技术</td></tr>
+<tr><td>前约6000年</td><td>矮人首次感知石语者共振</td></tr>
+<tr><td>前约5000年</td><td>契约术萌芽</td></tr>
+<tr><td>前约3000年</td><td>跨种族贸易网络形成</td></tr>
+<tr><td>前约2500年</td><td>辉石高原出现首个多种族联合城邦共同体，公会制度萌芽</td></tr>
+<tr><td>前约2000年</td><td>通用语被发现和系统化研究</td></tr>
+<tr><td>前约1500年</td><td>巨龙与类人种族首次接触</td></tr>
+<tr><td>前约1000年</td><td>奥术学院在辉石高原成立</td></tr>
+<tr><td>前800年-前0年</td><td>黄金时代，魔法技术急速发展</td></tr>
+<tr><td>前0年</td><td>织理之殇——地脉魔力过度抽取导致大规模裂隙，异界入侵</td></tr>
+<tr><td>前0年-后50年</td><td>大裂隙时期。全种族联合修复裂隙</td></tr>
+<tr><td>后48年</td><td>贤者评议会成立</td></tr>
+<tr><td>后约0-100年</td><td>纹账系统雏形（战后重建物资结算触发）</td></tr>
+<tr><td>后100年-后200年</td><td>三位贤者各在织理中刻下错误警示</td></tr>
+<tr><td>后200年-后300年</td><td>共同体制度成形，四大盟确立</td></tr>
+<tr><td>后约250年</td><td>猎人公会成立</td></tr>
+<tr><td>后约300年</td><td>冒险者公会成立</td></tr>
+<tr><td>后300年-后800年</td><td>现代。灰烬群岛开拓</td></tr>
+<tr><td>后约800年</td><td>当前</td></tr>
+</table></div>
+</div>
+
+<!-- ===== 八 ===== -->
+<div class="chapter-page" data-chapter="7">
+<div class="page-num">卷 八</div>
+<h2>语言</h2>
+<h3>通用语（织理共鸣语）</h3>
+<p>通用语是织理本身的默认频率。当一个人对织理的感知力成熟到一定程度时（通常在12-16岁，与力量亲和是否觉醒无关），通用语自然进入意识。不依赖教学，不需要记忆。一旦觉醒，无法再"退回去"听不懂。通用语没有任何口音，无法用于加密。书面形式是字符式——每个词汇对应一个独立字符，来源于真名文字的简化投影。书写顺序横排左起。</p>
+<h3>地方语</h3>
+<p>必须学习的地方语，不会自动觉醒。存在口音和方言，可以加密。</p>
+<ul>
+<li><strong>人类地方语：辉石共通语</strong>，词汇量极大，吸收最多外来词</li>
+<li><strong>精灵地方语：林语</strong>，非线性概念语，语法包含时间维度信息</li>
+<li><strong>矮人地方语：山脉语</strong>，喉音丰富，书面形式为星型放射状书写</li>
+<li><strong>兽人地方语：草原语</strong>，语义依赖音调和音长变化</li>
+<li><strong>地精地方语：奇械行话</strong>，每十年更新一次词汇库，包含大量技术术语和自创符号</li>
+</ul>
+<h3>语言使用场景</h3>
+<p>正式场合使用通用语。同族私人交谈使用地方语（被视为正常，不是不礼貌）。学术著作使用通用语。诗歌与歌曲几乎总是使用地方语。</p>
+</div>
+
+<!-- ===== 九 ===== -->
+<div class="chapter-page" data-chapter="8">
+<div class="page-num">卷 九</div>
+<h2>经济系统：纹账</h2>
+<h3>纹路</h3>
+<p>每个人在出生时拥有纹路——身体上的纹身状印记，位置不固定。纹路平时不显现，在需要查询余额或进行交易时，因持有者的意图自然浮现。浮现的符文数字只有本人能读懂。这是一种本能，通用语觉醒后自然掌握。通用语未觉醒的儿童也拥有纹路，但只能接收点数，不能将物品转化为点数，也不能签署双向契约。</p>
+<h3>铸衡之间</h3>
+<p>每个城池至少有一间铸衡之间。无人值守，完全由织理自动运作。将含能无生命的物品放入投物口，物品进入评估池后消失，纹路上浮现新增点数。估值唯一标准：物品蕴含的可用能量总量。点数本质是织理欠你的能量等价物。不接受人工估值，不可接受物品会被原样退回。不可接受的物品包括：生物体、没有物质形态的概念、违禁材料、不完整的物品碎片。估值汇率是浮动的——某种物品被大量投入时，换算比率自动下调。</p>
+<h3>点数划转</h3>
+<p>个人之间的点数划转不需要通过铸衡之间。双方纹路浮现，意念确认，点数即刻到账。覆盖全大陆，不需要汇率换算。</p>
+<h3>隐私</h3>
+<p>纹账完全隐私。余额、交易记录只有本人可见。但星相师可通过星辰投影观测大致财务趋势，预言法师可概率反推经济行为模式。这些手段受法律严格限制。</p>
+<h3>死后点数</h3>
+<p>当一个人死亡，纹路消失的瞬间，织理自动处理账户剩余点数。部分点数可能被保留进入休眠状态，部分被回收进入公共能量池。点数可以被继承和掠夺，但伴随法律风险：遗嘱继承完全合法；法定继承需直系亲属在死者去世后一个月内申请；死后未经授权的点数掠夺视同盗窃。牙行是专门从事点数遗产中介的非法定职业。</p>
+<h3>经济影响</h3>
+<p>纹账无法直接继承（亲属继承的是实体物品）。每个人的财富积累从零开始。跨大陆贸易因纹账自动覆盖全大陆而简化。阶级无法通过点数代际转移固化。</p>
+</div>
+
+<!-- ===== 十 ===== -->
+<div class="chapter-page" data-chapter="9">
+<div class="page-num">卷 十</div>
+<h2>法律与司法</h2>
+<h3>法律渊源</h3>
+<p>混合制：成文法典+判例解释。每个盟有基础法典，具体条款的解释依赖判例。地方规矩必须张贴在显眼处，未张贴视为未生效。</p>
+<h3>全大陆通用基本法典</h3>
+<p>贤者评议会起草，四大盟联席会议共同批准。核心条款：生命权、人身自由、财产权、契约自由、诉讼权利、隐私权、职业自由。</p>
+<h3>司法机构</h3>
+<p>全国联席会议拥有最高司法权。日常纠纷由地方共同体协调人兼任基层法官。下设专门机构：契约仲裁庭（商业纠纷）、职业纪律委员会（职业违规）、公共安全调查组（公共安全案件）、跨盟仲裁合议庭（跨盟案件，终审）。</p>
+<h3>执法队伍</h3>
+<p>法警由全国联席会议直接管辖，负责执行裁决、维持法庭秩序、逮捕暴力犯罪嫌疑人。法警不是巡逻警察。日常治安靠共同体自我管理。</p>
+<h3>各盟司法风格</h3>
+<ul>
+<li><strong>辉石盟</strong>：重程序，有预审调查期制度</li>
+<li><strong>霜钢盟</strong>：重效率，冬季民事案件暂停，有严冬豁免制度</li>
+<li><strong>翠叶共环</strong>：重修复，惩罚目的是修复伤害</li>
+<li><strong>赤砂链</strong>：重契约，欺诈是最重罪名，有信用罚制度</li>
+</ul>
+</div>
+
+<!-- ===== 十一 ===== -->
+<div class="chapter-page" data-chapter="10">
+<div class="page-num">卷十一</div>
+<h2>科技与魔法化</h2>
+<h3>能量即科技</h3>
+<p>所有科技以原始之海的渗透能量为动力。不存在蒸汽动力或化石燃料。技术进步依赖于对织理的理解和运用。</p>
+<h3>照明</h3>
+<p>平民日常用油灯和蜡烛。辉石盟矿工家庭使用"晶渣灯"。城镇公共照明用符文灯柱。高端私用魔晶灯。</p>
+<h3>交通</h3>
+<p>短途靠步行、畜力、驮鸟。长途陆路靠公用马车。海运主力是帆船。传送阵票价约普通人半月收入，紧急情况可由共同体公共资金支付。</p>
+<h3>医疗</h3>
+<p>基础医疗由魔药师提供，药剂价格受共同体补贴。急救靠炼金术士速效药剂。外科手术由专门外科医师执行。流行病监测网由德鲁伊环负责。</p>
+<h3>农业</h3>
+<p>自然耕作是主流。魔法辅助包括德鲁伊土壤评估、符文灌溉系统（部分大型农场）、地精农具。</p>
+<h3>建筑</h3>
+<p>辉石盟石砌网格化、霜钢盟半地下地热保温、翠叶共环活木建筑、赤砂链沙砖穹顶、灰烬群岛火山石半地下化。</p>
+<h3>信息传播</h3>
+<p>织理通讯网络已全大陆普及。短讯价格极低。公共信息张贴于铸衡之间、公会大厅和市场公告板。书籍仍靠手工抄写或符文拓印。口头传播仍是重要补充。</p>
+<h3>平民生活水平</h3>
+<p>食物约十分之四开支，住房十分之二，照明取暖十分之一。符文灯和织理通讯器是"攒钱可买"的耐用品。基础教育和急诊基本免费。</p>
+</div>
+
+<!-- ===== 十二 ===== -->
+<div class="chapter-page" data-chapter="11">
+<div class="page-num">卷十二</div>
+<h2>文化与艺术</h2>
+<h3>节日</h3>
+<p>没有全大陆统一的法定节日。节日完全由各地方共同体自行决定。但由于数万年的历史沉淀，各地方的节日已高度固定化。季节节庆日期各地不同。部分节日按职业而非地区庆祝。</p>
+<h3>婚姻</h3>
+<p>婚姻是在织理见证下签署的私人契约，受织理保护。不分男女。签署地点必须在铸衡之间。<strong>绝对门槛</strong>：未成年人（未到通用语觉醒年龄）绝对无法缔结婚姻契约——织理根本不接受，未觉醒的纹路不具备双向契约确认功能。不同种族的觉醒年龄不同，但规则完全一样。<strong>离婚</strong>通过司法机构向织理沟通解除，社会没有"离婚丢人"的观念。共有账户是唯一合法的点数共享机制。</p>
+<h3>葬礼</h3>
+<p>霜钢盟冰葬、翠叶共环树葬、赤砂链火葬（骨灰压入公共建筑沙砖）、辉石盟石冢。最后一步统一：家属说出"此人留下的记忆由共同体保管"。</p>
+<h3>成年礼</h3>
+<p>通用语觉醒的这一年即是成年之年。成年者独自走进铸衡之间，投入人生第一件靠自己获得的有价值之物。</p>
+<h3>竞技与娱乐</h3>
+<p>联合演武（辉石与霜钢传统竞技）、沙舟竞速（赤砂链）、地精发明博览会（全大陆）。冒险者公会维护酒馆传闻板。</p>
+<h3>各盟艺术风格</h3>
+<div class="tbl-wrap"><table>
+<tr><th>盟</th><th>音乐特征</th><th>典型乐器</th><th>传统服饰</th><th>代表性舞蹈/戏剧</th></tr>
+<tr><td>辉石盟</td><td>严谨和声，复调织体</td><td>石管风琴、拨弦琴</td><td>束腰长袍，深蓝与银灰</td><td>辩论剧</td></tr>
+<tr><td>霜钢盟</td><td>沉厚共鸣，低音长音</td><td>骨号、喉音合唱</td><td>多层皮毛衣，深棕与灰白</td><td>炉边故事</td></tr>
+<tr><td>翠叶共环</td><td>悠长旋律线，无固定节拍</td><td>活木长笛、弦鸣藤</td><td>植物纤维编织，绿与棕</td><td>光斑舞</td></tr>
+<tr><td>赤砂链</td><td>复杂节奏，即兴成分高</td><td>沙鼓、蛇形号</td><td>宽松透气长袍，浅色防热</td><td>商人之辩（即兴喜剧）</td></tr>
+<tr><td>灰烬群岛</td><td>火山低鸣采样，打击乐密集</td><td>熔岩石琴、火山灰陶鼓</td><td>耐磨火山纤维布，深灰与暗红</td><td>火祭舞</td></tr>
+</table></div>
+</div>
+
+<!-- ===== 十三 ===== -->
+<div class="chapter-page" data-chapter="12">
+<div class="page-num">卷十三</div>
+<h2>教育</h2>
+<h3>基础教育（共同体提供）</h3>
+<p>面向所有儿童的基础学堂，教识字（通用语读写）、算术和常识。免费入学。不考试不排名。经费来自共同体公共预算。有力量亲和的儿童毕业后进入职业公会学徒制。无力量亲和的普通儿童可选择进入专门学院或直接社会实践。</p>
+<h3>职业技能培训（各职业公会提供）</h3>
+<p>以师徒制为主，学徒期数年到十数年不等。通常要求完成基础教育但非硬性规定。学费一般免收，学徒劳动作为成本抵扣。</p>
+<h3>专门学院（高等教育，不要求力量亲和）</h3>
+<ul>
+<li><strong>奥术学院</strong>（辉石盟）：魔法理论研究与学术人才培养</li>
+<li><strong>大陆医学院</strong>（辉石盟）：解剖学、药剂学、外科手术，不收学费但毕业后需服务数年</li>
+<li><strong>大陆工程学院</strong>（霜钢盟）：材料科学、建筑力学，矮人城市中</li>
+<li><strong>沙盘馆/商学院</strong>（赤砂链）：契约法、贸易实务，无固定校舍，风险投资式毕业考核</li>
+<li><strong>军事学院</strong>（霜钢盟）：战术指挥、后勤管理，退役战争领主创办</li>
+<li><strong>艺术学院</strong>（辉石盟）：音乐、视觉艺术、表演，全大陆最年轻的学院</li>
+</ul>
+<h3>各地教育风格</h3>
+<ul>
+<li><strong>辉石盟</strong>：基础教育最系统化，入学率全大陆最高</li>
+<li><strong>霜钢盟</strong>：冬季集中授课制（利用严寒农闲期），识字率四盟第二</li>
+<li><strong>翠叶共环</strong>：分散式林间学堂，含生态知识和精类语言入门</li>
+<li><strong>赤砂链</strong>：商会资助，常识课含商业实务基础，识字率在绿洲间差异大</li>
+</ul>
+</div>
+
+<!-- ===== 十四 ===== -->
+<div class="chapter-page" data-chapter="13">
+<div class="page-num">卷十四</div>
+<h2>气候与生态</h2>
+<h3>织理气候异常</h3>
+<p>织理在空间中不均匀分布，密度差异直接影响当地气候：</p>
+<ul>
+<li><strong>织理密集区</strong>：常年无风或恒温，辉石高原部分区域为典型</li>
+<li><strong>织理稀疏区</strong>：天气变幻剧烈，赤砂沙海深处为典型</li>
+<li><strong>裂隙残留区</strong>：魔法效果不稳定，被划为非居住区</li>
+<li><strong>地脉节点</strong>：高能量密度区域，植被异常茂盛</li>
+</ul>
+<h3>怪物与魔法生物</h3>
+<p><strong>低威胁物种（内圈）</strong>：已完全融入本土生态，在全世界广泛分布。例如微光虫（发光昆虫）、疾风鼠（季节性害兽）、石壳蟹（可食用）、织理珊瑚（织理状态天然指标）。不受猎人公会管控。</p>
+<p><strong>高威胁物种（外圈）</strong>：织理之殇产物或织理异常催生的变异种。在特定区域形成稳定分布，与本土生态隔离。例如血棘（噬魔藤蔓）、裂隙残响（非实体）、灰烬巨蜥（火山预警活指标）、沙海蠕虫（沙海深处巨型生物）、霜脊兽（极北温顺巨兽）。受猎人公会监测，猎杀需记录上报。</p>
+<h3>各大陆代表性物种</h3>
+<p>辉石高原的晶矿蝙蝠（富矿指示生物）、霜钢山脉的霜叶鹿（地脉季节性指标）、千灵之森的织网蛛（与德鲁伊互惠共生）、赤砂沙海的沙歌蜥（黄昏鸣叫）、织理之海的光帆水母（织理密度天然指标）、灰烬群岛的硫磺蝶（火山喷发预警）。</p>
+</div>
+
+<!-- ===== 十五 ===== -->
+<div class="chapter-page" data-chapter="14">
+<div class="page-num">卷十五</div>
+<h2>军事与防御</h2>
+<h3>核心理念</h3>
+<p>不存在常备军。防御体系分四层：</p>
+<p><strong>第一层：地方自卫队</strong>。居民兼职，定期训练，只能就地防御，不能对外出击。</p>
+<p><strong>第二层：职业公会防御力量</strong>。骑士团（防守性，以誓约为纽带）、佣兵团（进攻性，靠商业合同运作）、各职业公会在防御中的特定职能。</p>
+<p><strong>第三层：跨盟联合防御协议</strong>。覆盖怪物潮、血棘失控、裂隙再现、跨大陆瘟疫。由贤者评议会确认触发。从未有盟拒绝联合响应。</p>
+<p><strong>第四层：战争准备</strong>。大陆上不存在针对其他人类国家的战争计划。即使开战，由佣兵团执行，限制交战区域，不波及平民。</p>
+<h3>特色防御机制</h3>
+<p>环境即防御（翠叶森林、霜钢严寒、赤砂沙海）、猎人情报网（转为军事情报系统）、传送点紧急关闭权限（驻点阵法师可独立决定）、纹账动员（战时物资征用但战后归还）。</p>
+<h3>防御文化</h3>
+<p>大裂隙时期的集体记忆决定了防御逻辑：真正的国防不是军队数量，而是传送网络冗余度、猎人情报网覆盖率、阵法师响应速度、和全大陆在联合防御条款下的信任基础。</p>
+</div>
+
+<!-- ===== 十六 ===== -->
+<div class="chapter-page" data-chapter="15">
+<div class="page-num">卷十六</div>
+<h2>灰色地带</h2>
+<h3>黑市</h3>
+<p>非违禁品但交易方不愿公开的私下交易网络。临时交易点遍布各地，靠口口相传。法律上不主动追查，但税务存在争议。</p>
+<h3>违禁品</h3>
+<p>强制通灵尸体、血棘提取物、违禁标记的不完整物品碎片、未经许可的军用附魔武器。完全依赖点对点数划转，通过多层虚假交易掩盖路径（点数清洗）。</p>
+<h3>信息黑市</h3>
+<p>隐私信息的非法交易。暗杀者行会是最大买家和卖家。所有参与方克制大规模公开兜售，因为一旦联席会议被迫取消财务隐私权，所有人都会受损。</p>
+<h3>无管理地区定居者</h3>
+<p>构成复杂：不愿受管辖者、被驱逐者、自愿隐士、从未加入共同体的独立部族。生存状态艰苦但自由，与外界的关系为"不敌对但疏离"。</p>
+<h3>非法与半合法职业</h3>
+<p>黑死灵师（合法死灵师的头号敌人）、无照暗杀者（行会品牌保护打击对象）、违禁品鉴定师（法律漏洞——鉴定本身不违法）、纹账清洗师（牙行分支，技术本身合法，用途决定性质）。</p>
+<h3>亚文化群体</h3>
+<p>学院异见者、激进生态主义者、复古生活倡导者、原始之海研究待考学派。</p>
+</div>
+
+<!-- ===== 十七 ===== -->
+<div class="chapter-page" data-chapter="16">
+<div class="page-num">卷十七</div>
+<h2>职业生态数据</h2>
+<h3>人数最多的前十职业</h3>
+<p>魔药师、猎人、武者、塑能法师、符文师（含锻造符文师）、骑士、佣兵（注册于冒险者公会）、德鲁伊、舞者、阵法师。</p>
+<h3>最稀有的顶点阶层</h3>
+<p>贤者、破晓骑士、毁灭之弦、灾厄终结者——现役总人数不超百人。贤者现役人数在个位数内。</p>
+<h3>收入水平</h3>
+<ul>
+<li><strong>高收入</strong>：阵法师、炼金术士、契约术士、符文师、死灵法师、暗杀者（单次高回报但不稳定）</li>
+<li><strong>中等收入</strong>：塑能法师、变化法师、防护法师、骑士（装备维护费用高）、猎人（讨伐报酬波动大）</li>
+<li><strong>低收入但稳定</strong>：德鲁伊、萨满、魔药师</li>
+<li><strong>波动极大</strong>：咒法法师、星相师、舞者、奇械师、同契者</li>
+</ul>
+<h3>认证通过率</h3>
+<ul>
+<li><strong>极高</strong>：魔药师、猎人、武者（入门阶段）</li>
+<li><strong>中等</strong>：塑能法师、骑士、德鲁伊、符文师</li>
+<li><strong>极低</strong>：预言法师、星相师、契约术士、缚灵师、同契者、死灵法师（持证率不低，但中途退出比例高）</li>
+</ul>
+<h3>最不可能转职的职业</h3>
+<p>牧树者（与树共生）、锻魂师（灵魂碎片已敲）、同契者（无法单方面解除）。</p>
+<h3>最年长在册者</h3>
+<p>一位精灵牧树者，年龄超过一万岁。</p>
+<h3>职业性别分布</h3>
+<p>各职业均有不同性别的从业者，不存在因性别被拒绝入行。分布比例因职业而异，非各半。</p>
+</div>
+
+<!-- ===== 十八 ===== -->
+<div class="chapter-page" data-chapter="17">
+<div class="page-num">卷十八</div>
+<h2>世界的边界</h2>
+<p>没有明确答案。世界是球形还是平面，海洋之外是否有其他陆地，深地有没有底——现有观测手段无法给出确定结论。</p>
+<p>织理之海已知航线外，曾有过远洋探险尝试。有记录的数次探索中，部分再未返航，部分自行折返，部分声称发现新岛屿但无法被再次找到。最接近确认的一次是数百年前一艘偏航商船的记录——船员声称看到了大陆架轮廓，但无法定位。</p>
+<p>极深地底，岩层逐渐过渡为凝聚的能量结构。已知最深人类足迹来自岩心矮人，但深度不对外公布。一位岩心矮人长者在织理中留下的记录写道："再往下，物质开始变得不诚实。"</p>
+<p>奥术学院主流假说：织理世界可能是一个巨大但有限的织理结构，包裹在原始之海中。边界处织理逐渐衰弱，物质最终回归纯能量态。但假说无法被验证——真到边界的人回不来。</p>
+<p>未知不是知识的失败，而是驱动探索的动力。每年都有新的探险者出海或深入深地，偶尔带回一些无法解释的东西，存放在贤者评议会档案室，等待后来者做出解释。</p>
+</div>
+
+<!-- ===== 十九 ===== -->
+<div class="chapter-page" data-chapter="18">
+<div class="page-num">卷十九</div>
+<h2>职业与阵营清单</h2>
+<h3>完整职业清单</h3>
+<div class="tbl-wrap"><table>
+<tr><th>体系</th><th>路径</th><th>职业</th></tr>
+<tr><td rowspan="2">魔法亲和</td><td>学院派法师</td><td>塑能法师、幻术法师、死灵法师、防护法师、咒法法师、预言法师、惑控法师、变化法师、织网者（多学派融合）、贤者</td></tr>
+<tr><td>应用技术者</td><td>符文师、阵法师、炼金术士、魔药师、幻术师、星相师</td></tr>
+<tr><td>武力亲和</td><td>战士</td><td>骑士、武者、狂战士、猎人</td></tr>
+<tr><td>契约亲和</td><td>契法使</td><td>契约术士、德鲁伊、萨满、缚灵师、同契者、血脉术士</td></tr>
+<tr><td>技艺亲和</td><td>技师</td><td>暗杀者、舞者</td></tr>
+<tr><td>锻造亲和</td><td>锻匠</td><td>锻魂师（矮人独占）、奇械师（地精独占）、锻造符文师</td></tr>
+<tr><td>异质亲和</td><td>特殊</td><td>牧树者（精灵独占）、灵缚者（兽人独占）</td></tr>
+</table></div>
+<h3>阵营清单</h3>
+<p>冒险者公会、骑士团、奥术学院、法师协会、猎人公会、德鲁伊环、地精大工程师协会、暗杀者行会、萨满祖堂、共同体联席会议、铸衡之间（织理自动运营）、贤者评议会（认证与终审机构）。</p>
+</div>
+
+<!-- 尾页 -->
+<div class="chapter-page" data-chapter="19" style="min-height:60vh">
+<div class="ending">
+<p class="last">✦ 织理世界设定集 · 终章 ✦</p>
+<p>以知识为弦，以羁绊为网，无神亦永恒。</p>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="scroll-hint" id="scrollHint"><span>▼ 滑动翻阅 ▼</span></div>
+
+<script>
+(function(){
+'use strict';
+var W=window.innerWidth,H=window.innerHeight;
+var can=document.getElementById('bgCanvas');
+var ctx=can.getContext('2d');
+can.width=W;can.height=H;
+
+/* ===== 织理星网基础层——星点随机缓慢漂移，不随鼠标 ===== */
+var nodes=[],N=50,CD=150;
+for(var i=0;i<N;i++){
+  nodes.push({bx:Math.random()*W,by:Math.random()*H,r:.4+Math.random()*1.6,
+    ph:Math.random()*6.28,sp:.001+.002*Math.random(),amp:3+18*Math.random(),
+    dx:(Math.random()-.5)*.3,dy:(Math.random()-.5)*.3});
+}
+
+function drawWeave(alpha){
+  if(alpha===undefined)alpha=.5;
+  var time=Date.now()*.0001;
+  for(var i=0;i<N;i++){
+    var n=nodes[i];n.ph+=n.sp;
+    n.bx+=n.dx*.15;n.by+=n.dy*.15;
+    if(n.bx<-50)n.bx=W+50;if(n.bx>W+50)n.bx=-50;
+    if(n.by<-50)n.by=H+50;if(n.by>H+50)n.by=-50;
+    n.x=n.bx+Math.cos(n.ph+n.dx*5)*n.amp*.25+Math.sin(time+i)*n.amp*.15;
+    n.y=n.by+Math.sin(n.ph*1.4+n.dy*5)*n.amp*.25+Math.cos(time*1.3+i)*n.amp*.15;
+  }
+  for(var i=0;i<N;i++){
+    for(var j=i+1;j<N;j++){
+      var dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<CD){var a=(1-d/CD)*.08*alpha;ctx.strokeStyle='rgba(201,169,110,'+a+')';ctx.lineWidth=.35;ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();}
+    }
+  }
+  for(var i=0;i<N;i++){
+    var n=nodes[i];var ga=(.55+Math.sin(n.ph*1.6)*.35)*alpha;
+    var glowAlpha=ga*.25;
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r*3.5,0,6.28);
+    ctx.fillStyle='rgba(201,169,110,'+(glowAlpha*.25)+')';ctx.fill();
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r*2.2,0,6.28);
+    ctx.fillStyle='rgba(201,169,110,'+glowAlpha+')';ctx.fill();
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,6.28);
+    ctx.fillStyle='rgba(240,225,180,'+Math.min(1,ga)+')';ctx.fill();
+  }
+}
+
+/* ===== 19章插画绘制函数（全部带动画） ===== */
+var cx=W/2,cy=H/2,sz=Math.min(W,H)*.50;
+function updateLayout(){cx=W/2;cy=H/2;sz=Math.min(W,H)*.50}
+
+function gold(a){return'rgba(201,169,110,'+a+')'}
+function pale(a){return'rgba(220,200,160,'+a+')'}
+
+function line(x1,y1,x2,y2,a,w){a=a||.12;w=w||.5;ctx.strokeStyle=gold(a);ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
+function circle(x,y,r,a,fill){ctx.beginPath();ctx.arc(x,y,r,0,6.28);if(fill){ctx.fillStyle=gold(a);ctx.fill()}else{ctx.strokeStyle=gold(a);ctx.lineWidth=.6;ctx.stroke()}}
+
+/* 0: 织理——旋转辐射网+脉动同心圆 */
+function drawWeaveNet(cx,cy,s,a,t){
+  a=a||.1;var rot=t*.15;
+  for(var i=0;i<10;i++){
+    var ang=i*Math.PI*2/10+rot;
+    var ex=cx+Math.cos(ang)*s*.85,ey=cy+Math.sin(ang)*s*.85;
+    ctx.beginPath();ctx.strokeStyle=gold(a*(.6+.4*Math.sin(t*2+ang)));ctx.lineWidth=.5;ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
+  }
+  for(var i=0;i<5;i++){
+    var r=s*(.15+i*.16),pulse=1+Math.sin(t*1.8+i)*.06;
+    ctx.beginPath();ctx.arc(cx,cy,r*pulse,0,6.28);ctx.strokeStyle=gold(a*(.65+i*.06));ctx.lineWidth=.35;ctx.stroke();
+  }
+  var stops=8;
+  for(var i=0;i<stops;i++){
+    for(var j=0;j<3;j++){
+      var ang=i*Math.PI*2/stops+rot*.5+j*Math.PI*2*.12;
+      var r2=s*(.38+.28*Math.sin(j+t*1.5));
+      circle(cx+Math.cos(ang)*r2,cy+Math.sin(ang)*r2,2.5,gold,a*(.6+.3*Math.sin(t*2+ang)),true);
+    }
+  }
+  circle(cx,cy,s*.05+Math.sin(t*2)*s*.01,a*.85,true);
+}
+
+/* 1: 原始之海——波浪滚动+分流涌动 */
+function drawPrimalSea(cx,cy,s,a,t){
+  a=a||.1;
+  for(var l=0;l<6;l++){
+    ctx.beginPath();var y0=cy-s*.45+l*s*.16;
+    for(var x=-s;x<=s;x+=3){
+      var y=y0+Math.sin(x*.012+l+t*.8)*s*.1+Math.sin(x*.025+l*2+t*1.3)*s*.06;
+      if(x===-s)ctx.moveTo(cx+x,cy+y);else ctx.lineTo(cx+x,cy+y);
+    }
+    ctx.strokeStyle=gold(a*(.3+l*.1));ctx.lineWidth=.6;ctx.stroke();
+  }
+  for(var b=0;b<3;b++){
+    var bx=cx+(b-1)*s*.25;
+    ctx.beginPath();ctx.moveTo(bx,cy-s*.3);
+    var tx=bx+s*.1*(b-1)+Math.sin(t*.7+b)*s*.05;
+    ctx.lineTo(tx,cy+s*.5);
+    ctx.strokeStyle=gold(a*.65);ctx.lineWidth=.8;ctx.stroke();
+  }
+}
+
+/* 2: 力量体系——旋转几何标记 */
+function drawPowerSystem(cx,cy,s,a,t){
+  a=a||.1;var syms=['✦','◆','◈','◇','▣','◎','⬡'];var rot=t*.1;
+  for(var i=0;i<7;i++){
+    var ang=-Math.PI/2+rot+i*Math.PI*2/7;
+    var r=s*(.5+.05*Math.sin(t*2+i));
+    var px=cx+Math.cos(ang)*r,py=cy+Math.sin(ang)*r;
+    circle(px,py,s*.07,a*(.6+.3*Math.sin(t*1.5+ang)),false);
+    ctx.fillStyle=gold(a);ctx.font=(s*.06)+'px serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(syms[i],px,py);
+    line(cx,cy,px,py,a*.45,.4);
+  }
+  circle(cx,cy,s*.04,a*.85,true);
+}
+
+/* 3: 种族——微浮动剪影 */
+function drawRaces(cx,cy,s,a,t){
+  a=a||.1;var bodies=[-.4,-.2,0,.2,.4];
+  for(var i=0;i<5;i++){
+    var bx=cx+bodies[i]*s,by=cy+Math.sin(t*1.3+i)*s*.04;
+    circle(bx,by-s*.2,s*.04,a*.65,true);
+    line(bx,by-s*.14,bx,by+s*.1,a*.65,.8);
+    var shx=bx+s*.06*(i-.5);
+    line(shx,by-s*.05,bx-s*.04,by+s*.15,a*.5,.5);
+    line(shx,by-s*.05,bx+s*.04,by+s*.15,a*.5,.5);
+    line(bx,by+s*.1,bx-s*.04,by+s*.25,a*.55,.5);
+    line(bx,by+s*.1,bx+s*.04,by+s*.25,a*.55,.5);
+  }
+}
+
+/* 4: 地理——大陆轻缓漂移 */
+function drawGeography(cx,cy,s,a,t){
+  a=a||.1;
+  var lands=[
+    [[-.3,-.4],[-.1,-.45],[.05,-.35],[.1,-.2],[-.1,-.15],[-.25,-.25]],
+    [[.1,.3],[.3,.25],[.35,.1],[.2,.05],[.15,.2]],
+    [[-.4,.1],[-.25,.15],[-.2,.3],[-.35,.35],[-.45,.2]],
+    [[.25,-.35],[.45,-.3],[.4,-.15],[.3,-.2]],
+    [[-.45,-.2],[-.3,-.3],[-.2,-.1],[-.35,-.05]],
+    [[.05,.05],[.2,.05],[.15,.2],[.05,.15]]
+  ];
+  for(var i=0;i<6;i++){
+    ctx.beginPath();
+    for(var j=0;j<lands[i].length;j++){
+      var px=cx+lands[i][j][0]*s+Math.cos(t*.5+i)*2,py=cy+lands[i][j][1]*s+Math.sin(t*.6+i)*2;
+      if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    ctx.closePath();ctx.strokeStyle=gold(a*(.7+.1*Math.sin(t+i)));ctx.lineWidth=.55;ctx.stroke();
+  }
+}
+
+/* 5: 国家——旋转圆桌 */
+function drawCouncil(cx,cy,s,a,t){
+  a=a||.1;var rot=t*.08;
+  for(var r=s*.15;r<s*.75;r+=s*.2){circle(cx,cy,r,a*(.4+.08*Math.sin(t+r)),false)}
+  for(var i=0;i<12;i++){
+    var ang=rot+i*Math.PI/6;
+    var px=cx+Math.cos(ang)*s*.55,py=cy+Math.sin(ang)*s*.55;
+    circle(px,py,s*.025,a*(.6+.25*Math.sin(t*1.2+ang)),true);
+    line(cx,cy,px,py,a*.28,.3);
+  }
+  circle(cx,cy,s*.05,a*.8,true);
+}
+
+/* 6: 历史年表——脉动闪烁节点 */
+function drawTimeline(cx,cy,s,a,t){
+  a=a||.1;ctx.strokeStyle=gold(a*.7);ctx.lineWidth=.8;
+  ctx.beginPath();ctx.moveTo(cx-s*.4,cy+s*.7);ctx.lineTo(cx-s*.4,cy-s*.7);ctx.stroke();
+  for(var i=0;i<14;i++){
+    var y=cy-s*.7+i*s*.1;
+    var lx=cx-s*.4;
+    line(lx,y,lx+s*.15,y,a*.5,.4);
+    if(i%3===0){var bx=cx-s*.15+(i%5)*s*.1+Math.sin(t+i)*4;line(lx+s*.15,y,bx,y,a*.35,.3);circle(bx,y,2.5,gold,a*(.5+.35*Math.sin(t*2+i)),true)}
+    else{circle(lx+s*.15,y,1.8+Math.sin(t*2+i)*.5,gold,a*(.4+.25*Math.sin(t*1.5+i)),true)}
+  }
+}
+
+/* 7: 语言——漂浮符文环 */
+function drawLanguage(cx,cy,s,a,t){
+  a=a||.1;var runes=['☳','⚘','◈','⧖','⬡','◇','⚛','✦'];
+  for(var i=0;i<runes.length;i++){
+    var ang=i*Math.PI*2/runes.length+t*.12;
+    var r=s*(.3+.15*Math.sin(i*2+t*.5));
+    var px=cx+Math.cos(ang)*r,py=cy+Math.sin(ang)*r;
+    ctx.fillStyle=gold(a*(.5+.35*Math.sin(i+t*1.8)));
+    ctx.font=(s*.07)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(runes[i],px,py);
+  }
+  for(var i=0;i<runes.length;i++){
+    for(var j=i+1;j<runes.length;j++){
+      var ai=i*Math.PI*2/runes.length+t*.12,aj=j*Math.PI*2/runes.length+t*.12;
+      var ri=s*(.3+.15*Math.sin(i*2+t*.5)),rj=s*(.3+.15*Math.sin(j*2+t*.5));
+      line(cx+Math.cos(ai)*ri,cy+Math.sin(ai)*ri,cx+Math.cos(aj)*rj,cy+Math.sin(aj)*rj,a*.2,.25);
+    }
+  }
+}
+
+/* 8: 纹账——旋转螺旋纹 */
+function drawRuneLedger(cx,cy,s,a,t){
+  a=a||.1;var rot=t*.2;
+  var palmY=cy+s*.1;
+  line(cx-s*.2,palmY,cx-s*.3,cy+s*.4,a*.65,.7);
+  line(cx-s*.2,palmY,cx+s*.2,cy+s*.25,a*.65,.7);
+  line(cx-s*.2,palmY,cx,cy+s*.45,a*.65,.7);
+  line(cx-s*.2,palmY,cx+s*.1,cy+s*.5,a*.65,.7);
+  line(cx-s*.2,palmY,cx-s*.3,cy+s*.35,a*.45,.5);
+  line(cx+s*.1,cy+s*.3,cx-s*.15,cy+s*.15,a*.25,.3);
+  circle(cx-s*.2,palmY,s*.12,a*.55,false);
+  for(var i=0;i<8;i++){
+    var r2=s*.09-i*s*.01,ang=rot+i*.6;
+    ctx.beginPath();ctx.ellipse(cx-s*.15,cy-s*.05,r2,r2*.6,ang,0,6.28);
+    ctx.strokeStyle=gold(a*(.4+.08*Math.sin(t+i)));ctx.lineWidth=.4;ctx.stroke();
+  }
+}
+
+/* 9: 法律——天平摆动 */
+function drawLaw(cx,cy,s,a,t){
+  a=a||.1;var sway=Math.sin(t*.7)*.04;
+  line(cx,cy-s*.4,cx,cy+s*.5,a*.65,1);
+  line(cx,cy-s*.15,cx,cy-s*.1,a*.55,.5);
+  line(cx-s*.3+sway*s,cy-s*.25,cx+s*.3+sway*s,cy-s*.25,a*.55,.7);
+  var R=s*.12;
+  line(cx-s*.3+sway*s,cy-s*.25,cx-s*.3+sway*s,cy-s*.05+Math.sin(t*.9)*s*.03,a*.55,.7);
+  line(cx+s*.3+sway*s,cy-s*.25,cx+s*.3+sway*s,cy-s*.15-Math.sin(t*.9)*s*.03,a*.55,.7);
+  circle(cx-s*.3+sway*s,cy-s*.05+Math.sin(t*.9)*s*.03,R,a*.5,false);
+  circle(cx+s*.3+sway*s,cy-s*.15-Math.sin(t*.9)*s*.03,R,a*.5,false);
+  circle(cx-s*.28+sway*s,cy-s*.05+Math.sin(t*.9)*s*.03,R*.35,a*.45,true);
+  circle(cx+s*.32+sway*s,cy-s*.15-Math.sin(t*.9)*s*.03,R*.25,a*.35,true);
+}
+
+/* 10: 科技——旋转齿轮 */
+function drawTechnology(cx,cy,s,a,t){
+  a=a||.1;var rot=t*.1;
+  for(var ri=0;ri<3;ri++){
+    var r=s*(.18+ri*.2),rot2=rot*(ri%2?1:-1.3);
+    ctx.beginPath();
+    for(var i=0;i<=16;i++){
+      var ang=rot2+i*Math.PI*2/16;
+      var rr=r+(i%2?r*.14:0);
+      var px=cx+Math.cos(ang)*rr,py=cy+Math.sin(ang)*rr;
+      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    ctx.closePath();ctx.strokeStyle=gold(a*(.45+r/s*.25));ctx.lineWidth=r/s*3+.2;ctx.stroke();
+  }
+  for(var i=0;i<6;i++){
+    var ang=i*Math.PI/3+rot;
+    line(cx+Math.cos(ang)*s*.2,cx+Math.sin(ang)*s*.2,cx+Math.cos(ang)*s*.65,cx+Math.sin(ang)*s*.65,a*.25,.3);
+  }
+  circle(cx,cy,s*.07,a*.7,true);
+}
+
+/* 11: 文化——跳舞小人+浮动音符 */
+function drawCulture(cx,cy,s,a,t){
+  a=a||.1;
+  for(var l=0;l<5;l++)line(cx-s*.5,cy-s*.3+l*s*.1,cx-s*.1,cy-s*.3+l*s*.1,a*.55,.3);
+  var notes=[.15,.3,.1,.4,.2,.35,.5];
+  for(var i=0;i<notes.length;i++){
+    var nx=cx-s*.48+i*s*.07,ny=cy-s*.35+notes[i]*s*.15+Math.sin(t*3+i)*3;
+    circle(nx,ny,3,gold,a*(.55+.3*Math.sin(t*2+i)),true);
+    line(nx+2.5,ny,nx+2.5,ny+s*.1,a*.45,.4);
+  }
+  var dx=cx+s*.2,dy=cy+s*.1+Math.sin(t*2)*s*.04;
+  circle(dx,dy-s*.18,6,a*.65,true);
+  var la=Math.sin(t*3)*.15,ra=Math.sin(t*2.7+.5)*.15;
+  line(dx,dy-s*.14,dx,dy+s*.05,a*.65,.7);
+  line(dx,dy-s*.05,dx-s*.07,dy+s*.15+la*s,a*.55,.5);
+  line(dx,dy-s*.05,dx+s*.07,dy+s*.15+ra*s,a*.55,.5);
+  line(dx,dy+s*.05,dx-s*.06,dy+s*.25,a*.55,.5);
+  line(dx,dy+s*.05,dx+s*.06,dy+s*.25,a*.55,.5);
+}
+
+/* 12: 教育——翻页书+脉动光线 */
+function drawEducation(cx,cy,s,a,t){
+  a=a||.1;var page=Math.sin(t*.6)*s*.05;
+  ctx.beginPath();ctx.moveTo(cx,cy-s*.05);ctx.quadraticCurveTo(cx+s*.35+page,cy-s*.2,cx+s*.5,cy+s*.1);
+  ctx.strokeStyle=gold(a*.65);ctx.lineWidth=.8;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy-s*.05);ctx.quadraticCurveTo(cx-s*.35-page,cy-s*.2,cx-s*.5,cy+s*.1);
+  ctx.stroke();
+  line(cx-s*.45,cy+s*.12,cx+s*.45,cy+s*.12,a*.55,.7);
+  for(var i=0;i<7;i++){
+    var ang=-Math.PI*.6+i*Math.PI*.2;
+    var len=s*(.35+i*.04)+Math.sin(t*2+i)*s*.04;
+    line(cx,cy-s*.3,cx+Math.cos(ang)*len,cy-s*.3+Math.sin(ang)*len,a*(.25+.06*Math.sin(t+i)),.3);
+  }
+}
+
+/* 13: 气候生态——旋转太阳+漂移云+摇曳树 */
+function drawEcology(cx,cy,s,a,t){
+  a=a||.1;var rot=t*.3;
+  circle(cx-s*.3,cy-s*.25,s*.08,a*.55,false);
+  for(var i=0;i<10;i++){
+    var ang=rot+i*Math.PI/5;
+    line(cx-s*.3+Math.cos(ang)*s*.13,cy-s*.25+Math.sin(ang)*s*.13,cx-s*.3+Math.cos(ang)*s*.18,cy-s*.25+Math.sin(ang)*s*.18,a*.45,.35);
+  }
+  var cx1=cx+s*.15+Math.cos(t*.4)*5;
+  ctx.beginPath();ctx.arc(cx1,cy-s*.2,s*.1,Math.PI,0);
+  ctx.arc(cx1+s*.13,cy-s*.2,s*.08,Math.PI,0);
+  ctx.strokeStyle=gold(a*.45);ctx.lineWidth=.5;ctx.stroke();
+  var sway=Math.sin(t*1.5)*.03*s;
+  ctx.beginPath();ctx.moveTo(cx-s*.1,cy+s*.25);ctx.lineTo(cx-s*.1+sway,cy-s*.05);
+  ctx.lineTo(cx-s*.25+sway,cy-s*.05);ctx.lineTo(cx+sway,cy-s*.2);
+  ctx.lineTo(cx+s*.25+sway,cy-s*.05);ctx.lineTo(cx+s*.1+sway,cy-s*.05);
+  ctx.lineTo(cx+s*.1+sway,cy+s*.25);
+  ctx.strokeStyle=gold(a*.55);ctx.lineWidth=.5;ctx.stroke();
+  var by=cy+s*.15+Math.sin(t*1.7)*5;
+  ctx.beginPath();ctx.moveTo(cx-s*.15,by);ctx.quadraticCurveTo(cx,by+s*.08,cx+s*.15,by);ctx.stroke();
+}
+
+/* 14: 防御——脉动护盾 */
+function drawDefense(cx,cy,s,a,t){
+  a=a||.1;
+  for(var i=0;i<5;i++){
+    var r=s*(.18+i*.12),pulse=1+Math.sin(t*1.5+i)*.04;
+    ctx.beginPath();ctx.arc(cx,cy,r*pulse,Math.PI*.25,Math.PI*1.75);
+    ctx.strokeStyle=gold(a*(.25+i*.1));ctx.lineWidth=.8;ctx.stroke();
+  }
+  line(cx-s*.6,cy-s*.06,cx-s*.6,cy+s*.06,a*.45,.6);
+  line(cx-s*.6,cy,cx-s*.25,cy,a*.45,.6);
+  line(cx-s*.35,cy-s*.15,cx-s*.25,cy,a*.35,.4);
+  line(cx-s*.35,cy+s*.15,cx-s*.25,cy,a*.35,.4);
+}
+
+/* 15: 灰色地带——路径游走点 */
+function drawGrayZone(cx,cy,s,a,t){
+  a=a||.1;
+  ctx.setLineDash([4,8]);ctx.strokeStyle=gold(a*.45);ctx.lineWidth=.5;
+  ctx.beginPath();ctx.moveTo(cx-s*.6,cy+s*.55);
+  ctx.quadraticCurveTo(cx-s*.3+Math.sin(t)*5,cy+s*.2,cx,cy);
+  ctx.quadraticCurveTo(cx+s*.2,cy-s*.3,cx+s*.5,cy-s*.55);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(cx-s*.45,cy+s*.4);
+  ctx.quadraticCurveTo(cx-s*.15,cy+s*.05,cx+.15*s,cy);
+  ctx.quadraticCurveTo(cx+s*.3,cy-s*.15,cx+s*.35,cy-s*.4);
+  ctx.strokeStyle=gold(a*.35);ctx.lineWidth=.35;ctx.stroke();
+  for(var i=0;i<6;i++){
+    var prog=((i/6+t*.08)%1);
+    var px=cx-s*.5+prog*(cx+s*.5-(cx-s*.5));
+    var py=cy+s*.4+prog*(cy-s*.4-(cy+s*.4));
+    circle(px,py,1.8+Math.sin(t*3+i)*.6,gold,a*(.5+.3*Math.sin(t*2+i)),true);
+  }
+}
+
+/* 16: 职业数据——呼吸柱状图 */
+function drawCareerData(cx,cy,s,a,t){
+  a=a||.1;
+  var bars=[.2,.35,.5,.3,.6,.45,.8,.4,.55,.25];
+  var bw=s*.7/bars.length;
+  for(var i=0;i<bars.length;i++){
+    var h=cy+s*.4-bars[i]*s*.7;
+    var pulse=1+Math.sin(t*2+i)*.06;
+    ctx.fillStyle=gold(a*(.2+bars[i]*pulse*.35));
+    ctx.fillRect(cx-s*.35+i*bw,h,bw*.7,cy+s*.4-h);
+  }
+  line(cx-s*.4,cy+s*.4,cx+s*.4,cy+s*.4,a*.45,.5);
+  line(cx-s*.4,cy+s*.4,cx-s*.4,cy-s*.4,a*.45,.5);
+}
+
+/* 17: 世界边界——波浪地平线+脉冲涟漪 */
+function drawBoundary(cx,cy,s,a,t){
+  a=a||.1;
+  ctx.beginPath();
+  for(var x=-s;x<=s;x+=3){
+    var y=Math.sin(x*.01+t*.7)*s*.08+Math.sin(x*.025+t*1.1)*s*.06;
+    if(x===-s)ctx.moveTo(cx+x,cy+y);else ctx.lineTo(cx+x,cy+y);
+  }
+  ctx.strokeStyle=gold(a*.65);ctx.lineWidth=.9;ctx.stroke();
+  for(var i=0;i<18;i++){
+    circle(cx+(i-9)*s*.08,cy+Math.sin((i-9)*.15+t)*s*.1+s*.2,1.3+Math.sin(t*2+i)*.3,gold,a*(.5+.2*Math.sin(t+i)),true);
+  }
+  for(var i=5;i>=1;i--){
+    circle(cx,cy,s*.1*i,a*(.12-.02*i+Math.sin(t*1.3+i)*.03),false);
+  }
+}
+
+/* 18: 星座——闪烁星点 */
+function drawConstellation(cx,cy,s,a,t){
+  a=a||.1;var stars=[];
+  var ptns=[[-.5,-.4],[-.2,-.5],[.3,-.35],[.45,-.1],[.4,.2],[.2,.45],[-.1,.4],[-.35,.25],[-.5,.05]];
+  for(var i=0;i<ptns.length;i++){
+    stars.push({x:cx+ptns[i][0]*s,y:cy+ptns[i][1]*s});
+  }
+  for(var i=0;i<stars.length;i++){
+    for(var j=i+1;j<stars.length;j++){
+      var dx=stars[i].x-stars[j].x,dy=stars[i].y-stars[j].y;
+      if(Math.sqrt(dx*dx+dy*dy)<s*.45)line(stars[i].x,stars[i].y,stars[j].x,stars[j].y,a*(.3+.08*Math.sin(t+i+j)),.3);
+    }
+  }
+  for(var i=0;i<stars.length;i++){
+    var twinkle=.4+.5*Math.sin(t*2.5+i*1.7);
+    circle(stars[i].x,stars[i].y,2+twinkle,gold,a*(.4+.35*twinkle),true);
+  }
+}
+
+/* 19: 终章——振荡光束+呼吸核心 */
+function drawFinale(cx,cy,s,a,t){
+  a=a||.1;
+  for(var i=0;i<3;i++){
+    ctx.beginPath();
+    for(var pt=0;pt<1;pt+=.02){
+      var x=cx+(pt-.5)*s*1.4;
+      var y=cy+Math.sin(pt*12+i*2+t*2.5)*s*.18+(i-1)*s*.2;
+      if(pt===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle=gold(a*(.35+i*.12));ctx.lineWidth=.6+i*.25;ctx.stroke();
+  }
+  circle(cx,cy,s*.04+Math.sin(t*1.5)*s*.01,a*.8,true);
+}
+
+/* ===== 封面插画 —— 世界结构：原始之海 → 织理之膜 → 大陆 ===== */
+function drawCover(cx,cy,s,a,t){
+  a=a||.1;
+
+  /* 原始之海 —— 底部多层深色波浪能量 */
+  for(var l=0;l<7;l++){
+    ctx.beginPath();var y0=cy+s*.5-l*s*.08;
+    for(var x=-s*.85;x<=s*.85;x+=4){
+      var y=y0+Math.sin(x*.02+l+t*1.1)*s*.06+Math.sin(x*.04+l*2+t*.7)*s*.03;
+      if(x===-s*.85)ctx.moveTo(cx+x,cy+y);else ctx.lineTo(cx+x,cy+y);
+    }
+    ctx.strokeStyle=gold(a*(.25+l*.06));ctx.lineWidth=.55;ctx.stroke();
+  }
+  /* 海底光点 */
+  for(var i=0;i<8;i++){
+    var bx=cx-s*.6+i*s*.15,by=cy+s*.35+Math.sin(t*1.5+i)*s*.06;
+    circle(bx,by,1+Math.sin(t*2+i)*.4,gold,a*(.35+.2*Math.sin(t*1.3+i)),true);
+  }
+
+  /* 上升能量柱 —— 从原始之海向织理渗透 */
+  for(var c=0;c<5;c++){
+    var ex=cx+(c-2)*s*.15;
+    var phase=t*1.2+c;
+    ctx.beginPath();ctx.moveTo(ex,cy+s*.3);
+    var cp1x=ex+Math.sin(phase)*s*.04,cp1y=cy+s*.05;
+    var cp2x=ex+Math.cos(phase*1.3)*s*.04,cp2y=cy-s*.25;
+    ctx.quadraticCurveTo(cp1x,cp1y,cp2x,cp2y);
+    ctx.strokeStyle=gold(a*(.35+.1*Math.sin(phase)));ctx.lineWidth=.7;ctx.stroke();
+  }
+
+  /* 织理之膜 —— 中间平面，能量经过织理分化 */
+  ctx.beginPath();
+  for(var x=-s*.8;x<=s*.8;x+=3){
+    var y=cy-s*.05+Math.sin(x*.02+t*.5)*s*.03+Math.sin(x*.05+t*1.2)*s*.02;
+    if(x===-s*.8)ctx.moveTo(cx+x,cy+y);else ctx.lineTo(cx+x,cy+y);
+  }
+  ctx.strokeStyle=gold(a*.7);ctx.lineWidth=.9;ctx.stroke();
+  /* 织理节点 */
+  for(var i=0;i<10;i++){
+    var nx=cx-s*.7+i*s*.14,ny=cy-s*.05+Math.sin(nx*.02+t*.5)*s*.03;
+    var pulse=1+Math.sin(t*1.8+i)*.4;
+    circle(nx,ny,2*pulse,gold,a*(.45+.25*Math.sin(t*2+i)),true);
+  }
+
+  /* 大陆 —— 上方，物质世界浮现 */
+  var lands=[
+    [[-.6,-.35],[-.35,-.42],[.05,-.38],[.25,-.3],[.1,-.22],[-.3,-.22],[-.5,-.26]],
+    [[.15,-.45],[.4,-.48],[.55,-.4],[.5,-.3],[.3,-.3]],
+    [[-.55,-.4],[-.7,-.35],[-.65,-.25],[-.5,-.26]]
+  ];
+  for(var i=0;i<lands.length;i++){
+    ctx.beginPath();
+    for(var j=0;j<lands[i].length;j++){
+      var px=cx+lands[i][j][0]*s+Math.cos(t*.5+i)*1.5;
+      var py=cy+lands[i][j][1]*s+Math.sin(t*.6+i)*1.5;
+      if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=gold(a*(.55+.08*Math.sin(t+i)));ctx.lineWidth=.55;ctx.stroke();
+  }
+  /* 大陆上散布的节点（文明标记） */
+  var dots=[[-.45,-.28],[.0,-.25],[.3,-.33],[-.6,-.3],[.45,-.32]];
+  for(var i=0;i<dots.length;i++){
+    var dx=cx+dots[i][0]*s,dy=cy+dots[i][1]*s;
+    var twinkle=.3+.5*Math.sin(t*2.5+i*2);
+    circle(dx,dy,1.5+twinkle,gold,a*(.4+.35*twinkle),true);
+  }
+
+  /* 最上方 —— 星轨天穹 */
+  for(var i=0;i<6;i++){
+    var ang=i*Math.PI/3+t*.08;
+    var r=s*(.1+.03*Math.sin(t*1.5+i));
+    circle(cx+Math.cos(ang)*s*.5,cy-s*.55+Math.sin(ang)*s*.15,1.5,gold,a*(.3+.25*Math.sin(t*2+ang)),true);
+  }
+}
+
+/* 插画注册表 */
+var chapterDrawFns=[
+  drawCover,
+  drawWeaveNet,drawPrimalSea,drawPowerSystem,drawRaces,drawGeography,
+  drawCouncil,drawTimeline,drawLanguage,drawRuneLedger,drawLaw,
+  drawTechnology,drawCulture,drawEducation,drawEcology,drawDefense,
+  drawGrayZone,drawCareerData,drawBoundary,drawConstellation,drawFinale
+];
+
+/* ===== 动画状态 ===== */
+var activeChapter=-1;
+var targetChapter=-1;
+var transitionAlpha=0;
+var chapterAlpha=0;
+
+/* 检测当前章节 */
+var chapterPages=document.querySelectorAll('.cover-page, .chapter-page');
+var chapLabel=document.getElementById('chapLabel');
+var scrollHint=document.getElementById('scrollHint');
+var volNames=['封面','卷 一','卷 二','卷 三','卷 四','卷 五','卷 六','卷 七','卷 八','卷 九','卷 十','卷十一','卷十二','卷十三','卷十四','卷十五','卷十六','卷十七','卷十八','卷十九','终 章'];
+
+function detectChapter(){
+  var best=-1,bestRatio=0;
+  for(var i=0;i<chapterPages.length;i++){
+    var rect=chapterPages[i].getBoundingClientRect();
+    var visTop=Math.max(0,rect.top);
+    var visBot=Math.min(H,rect.bottom);
+    var visH=Math.max(0,visBot-visTop);
+    var ratio=visH/Math.min(rect.height,H);
+    if(ratio>bestRatio&&ratio>.3){bestRatio=ratio;best=i}
+  }
+  if(best!==targetChapter){
+    targetChapter=best;
+    if(best>=0&&best<21)chapLabel.textContent=volNames[best];
+    if(best===20)scrollHint.classList.add('show');else scrollHint.classList.remove('show');
+    updateDots();
+  }
+}
+
+/* 顶栏圆点导航 */
+var dotNav=document.getElementById('dotNav');
+for(var i=0;i<21;i++){
+  var d=document.createElement('span');
+  d.dataset.idx=i;
+  d.addEventListener('click',function(){
+    var idx=parseInt(this.dataset.idx);
+    chapterPages[idx].scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  dotNav.appendChild(d);
+}
+function updateDots(){
+  var dots=dotNav.querySelectorAll('span');
+  dots.forEach(function(d,i){d.classList.toggle('active',i===targetChapter)});
+}
+
+/* IntersectionObserver */
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(e){
+    e.forEach(function(en){
+      if(en.isIntersecting){
+        var els=en.target.querySelectorAll('h2,h3,h4,p,ul,ol,.tbl-wrap');
+        els.forEach(function(el){el.classList.add('seen')});
+        var pn=en.target.querySelector('.page-num');
+        if(pn)pn.classList.add('lit');
+      }
+    });
+  },{threshold:.15});
+  chapterPages.forEach(function(p){io.observe(p)});
+}
+
+/* 进度线 */
+var prog=document.getElementById('progressLine');
+window.addEventListener('scroll',function(){
+  var pct=(window.scrollY/(document.documentElement.scrollHeight-H||1))*100;
+  prog.style.width=pct+'%';
+  detectChapter();
+});
+
+/* 顶栏 */
+var topBar=document.getElementById('topBar');
+window.addEventListener('scroll',function(){
+  topBar.classList.toggle('on',window.scrollY>80);
+});
+
+/* 光效光标 */
+var gc=document.getElementById('glowCursor'),gt;
+document.addEventListener('mousemove',function(e){
+  gc.style.left=e.clientX+'px';gc.style.top=e.clientY+'px';
+  gc.classList.add('on');clearTimeout(gt);
+  gt=setTimeout(function(){gc.classList.remove('on')},2000);
+});
+
+/* 主渲染循环 */
+function render(){
+  ctx.clearRect(0,0,W,H);
+  updateLayout();
+  var weaveA=.35;
+  var t=Date.now()*.001;
+
+  if(targetChapter!==activeChapter){
+    transitionAlpha=Math.max(0,transitionAlpha-.02);
+    chapterAlpha=Math.max(0,chapterAlpha-.02);
+    if(transitionAlpha<.01){activeChapter=targetChapter;chapterAlpha=0}
+  }else{
+    transitionAlpha=Math.min(1,transitionAlpha+.015);
+    chapterAlpha=Math.min(1,chapterAlpha+.012);
+    if(activeChapter>=0&&activeChapter<chapterDrawFns.length&&chapterAlpha>.02){
+      chapterDrawFns[activeChapter](cx,cy,sz,.35*chapterAlpha,t);
+    }
+  }
+
+  if(activeChapter>=0&&activeChapter<chapterDrawFns.length&&transitionAlpha>.02){
+    chapterDrawFns[activeChapter](cx,cy,sz,.35*transitionAlpha,t);
+  }
+
+  drawWeave(weaveA);
+  requestAnimationFrame(render);
+}
+
+window.addEventListener('resize',function(){
+  W=window.innerWidth;H=window.innerHeight;
+  can.width=W;can.height=H;
+  updateLayout();
+  for(var i=0;i<N;i++){nodes[i].bx=Math.random()*W;nodes[i].by=Math.random()*H}
+});
+render();
+detectChapter();
+/* 封面逐字延迟 */
+var covChars=document.querySelectorAll('.cover-title .cover-char');
+covChars.forEach(function(c,i){c.style.animationDelay=(i*.12)+'s'});
+})();
+</script>
+</body>
+</html>
