@@ -1,6 +1,7 @@
 {
   "pages": [
     "static/em.html",
-    "static/zl.html"
+    "static/zl.html",
+    "static/ly.html"
   ]
 }
