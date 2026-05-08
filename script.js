@@ -290,7 +290,8 @@ function setupEventListeners() {
         // 只有当URL不为空且图标类型为URL且图标输入框为空时才尝试获取
         if (url && iconType === 'url' && !iconUrlInput.value.trim()) {
             getFaviconUrl(url).then(function(faviconUrl) {
-                if (faviconUrl) {
+                // 再次检查输入框是否仍为空，防止覆盖用户手动输入的URL
+                if (faviconUrl && !iconUrlInput.value.trim()) {
                     iconUrlInput.value = faviconUrl;
                 }
             }).catch(function() {
@@ -694,7 +695,6 @@ function renderBookmarks() {
             const img = document.createElement('img');
             img.src = bookmark.icon;
             img.alt = bookmark.name;
-            img.loading = 'lazy';
             img.onerror = function() {
                 iconDiv.textContent = '🌐';
             };
@@ -780,7 +780,6 @@ function renderStaticPages() {
             const img = document.createElement('img');
             img.src = page.icon;
             img.alt = page.name;
-            img.loading = 'lazy';
             img.onerror = function() {
                 iconDiv.textContent = '📄';
             };
