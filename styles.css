@@ -1064,6 +1064,67 @@ body.dark footer {
     animation: fadeIn 0.3s ease;
 }
 
+/* 翻页导航 */
+.pagination {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.page-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(74, 111, 165, 0.2);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    color: #4a6fa5;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: rgba(74, 111, 165, 0.1);
+    border-color: #4a6fa5;
+    transform: scale(1.1);
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+body.dark .page-btn {
+    background: rgba(45, 45, 45, 0.6);
+    border-color: rgba(100, 181, 246, 0.2);
+    color: #64b5f6;
+}
+
+body.dark .page-btn:hover:not(:disabled) {
+    background: rgba(100, 181, 246, 0.1);
+    border-color: #64b5f6;
+}
+
+.page-info {
+    font-size: 0.9rem;
+    color: #666;
+    min-width: 40px;
+    text-align: center;
+    font-weight: 500;
+}
+
+body.dark .page-info {
+    color: #aaa;
+}
+
 /* 滚动条样式 */
 ::-webkit-scrollbar {
     width: 8px;

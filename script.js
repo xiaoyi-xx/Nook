@@ -1,6 +1,9 @@
 // 全局变量
 let bookmarks = [];
 let staticPages = [];
+let bookmarkPage = 1;
+let staticPage = 1;
+const ITEMS_PER_PAGE = 6;
 const searchEngines = {
     google: 'https://www.google.com/search?q=',
     bing: 'https://www.bing.com/search?q=',
@@ -642,6 +645,7 @@ function handleBookmarkSubmit(e) {
             iconType
         };
         bookmarks.push(newBookmark);
+        bookmarkPage = 1;
     }
     
     saveBookmarks();
@@ -661,38 +665,43 @@ function deleteBookmark(id) {
 
 // 渲染收藏网站
 function renderBookmarks() {
-    // 清空容器
     elements.bookmarksContainer.innerHTML = '';
-    
-    // 渲染收藏网站
-    bookmarks.forEach(bookmark => {
-        const bookmarkItem = document.createElement('div');
+
+    var itemsPerPage = ITEMS_PER_PAGE - 1;
+    var totalPages = Math.max(1, Math.ceil(bookmarks.length / itemsPerPage));
+    if (bookmarkPage > totalPages) bookmarkPage = totalPages;
+
+    var startIndex = (bookmarkPage - 1) * itemsPerPage;
+    var endIndex = Math.min(startIndex + itemsPerPage, bookmarks.length);
+    var pageItems = bookmarks.slice(startIndex, endIndex);
+
+    pageItems.forEach(function(bookmark) {
+        var bookmarkItem = document.createElement('div');
         bookmarkItem.className = 'bookmark-item';
-        
-        const actionsDiv = document.createElement('div');
+
+        var actionsDiv = document.createElement('div');
         actionsDiv.className = 'bookmark-actions';
-        
-        const editBtn = document.createElement('button');
+
+        var editBtn = document.createElement('button');
         editBtn.textContent = '编辑';
-        editBtn.addEventListener('click', () => openEditBookmarkModal(bookmark));
-        
-        const deleteBtn = document.createElement('button');
+        editBtn.addEventListener('click', function() { openEditBookmarkModal(bookmark); });
+
+        var deleteBtn = document.createElement('button');
         deleteBtn.textContent = '删除';
-        deleteBtn.addEventListener('click', () => deleteBookmark(bookmark.id));
-        
+        deleteBtn.addEventListener('click', function() { deleteBookmark(bookmark.id); });
+
         actionsDiv.appendChild(editBtn);
         actionsDiv.appendChild(deleteBtn);
-        
-        const link = document.createElement('a');
+
+        var link = document.createElement('a');
         link.href = bookmark.url;
         link.target = '_blank';
-        
-        const iconDiv = document.createElement('div');
+
+        var iconDiv = document.createElement('div');
         iconDiv.className = 'bookmark-icon';
-        
+
         if (bookmark.iconType === 'url' && bookmark.icon) {
-            // 显示URL图标
-            const img = document.createElement('img');
+            var img = document.createElement('img');
             img.src = bookmark.icon;
             img.alt = bookmark.name;
             img.onerror = function() {
@@ -700,84 +709,125 @@ function renderBookmarks() {
             };
             iconDiv.appendChild(img);
         } else {
-            // 显示表情图标
             iconDiv.textContent = bookmark.icon || '🌐';
         }
-        
-        const nameDiv = document.createElement('div');
+
+        var nameDiv = document.createElement('div');
         nameDiv.className = 'bookmark-name';
         nameDiv.textContent = bookmark.name;
-        
+
         link.appendChild(iconDiv);
         link.appendChild(nameDiv);
-        
+
         bookmarkItem.appendChild(actionsDiv);
         bookmarkItem.appendChild(link);
-        
+
         elements.bookmarksContainer.appendChild(bookmarkItem);
     });
-    
-    // 最后创建并添加添加按钮
-    const addBookmarkBtn = document.createElement('div');
+
+    var addBookmarkBtn = document.createElement('div');
     addBookmarkBtn.id = 'add-bookmark-btn';
     addBookmarkBtn.className = 'bookmark-item add-bookmark';
-    
-    const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'bookmark-actions';
-    
-    const link = document.createElement('a');
-    link.href = 'javascript:void(0)';
-    
-    const iconDiv = document.createElement('div');
-    iconDiv.className = 'bookmark-icon';
-    iconDiv.textContent = '+';
-    
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'bookmark-name';
-    nameDiv.textContent = '添加';
-    
-    link.appendChild(iconDiv);
-    link.appendChild(nameDiv);
-    
-    addBookmarkBtn.appendChild(actionsDiv);
-    addBookmarkBtn.appendChild(link);
+
+    var dummyActions = document.createElement('div');
+    dummyActions.className = 'bookmark-actions';
+
+    var addLink = document.createElement('a');
+    addLink.href = 'javascript:void(0)';
+
+    var addIconDiv = document.createElement('div');
+    addIconDiv.className = 'bookmark-icon';
+    addIconDiv.textContent = '+';
+
+    var addNameDiv = document.createElement('div');
+    addNameDiv.className = 'bookmark-name';
+    addNameDiv.textContent = '添加';
+
+    addLink.appendChild(addIconDiv);
+    addLink.appendChild(addNameDiv);
+
+    addBookmarkBtn.appendChild(dummyActions);
+    addBookmarkBtn.appendChild(addLink);
     addBookmarkBtn.addEventListener('click', openAddBookmarkModal);
-    
+
     elements.bookmarksContainer.appendChild(addBookmarkBtn);
+
+    // 翻页导航
+    if (totalPages > 1) {
+        var pagination = document.createElement('div');
+        pagination.className = 'pagination';
+
+        var prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.textContent = '‹';
+        prevBtn.disabled = bookmarkPage <= 1;
+        prevBtn.addEventListener('click', function() {
+            if (bookmarkPage > 1) {
+                bookmarkPage--;
+                renderBookmarks();
+            }
+        });
+
+        var pageInfo = document.createElement('span');
+        pageInfo.className = 'page-info';
+        pageInfo.textContent = bookmarkPage + '/' + totalPages;
+
+        var nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.textContent = '›';
+        nextBtn.disabled = bookmarkPage >= totalPages;
+        nextBtn.addEventListener('click', function() {
+            if (bookmarkPage < totalPages) {
+                bookmarkPage++;
+                renderBookmarks();
+            }
+        });
+
+        pagination.appendChild(prevBtn);
+        pagination.appendChild(pageInfo);
+        pagination.appendChild(nextBtn);
+
+        elements.bookmarksContainer.appendChild(pagination);
+    }
 }
 
-// 渲染静态页面
 function renderStaticPages() {
     elements.staticPagesContainer.innerHTML = '';
-    
+
     if (staticPages.length === 0) {
         elements.staticPagesContainer.innerHTML = '<p class="empty-message">暂无静态页面</p>';
         return;
     }
-    
-    staticPages.forEach(page => {
-        const pageItem = document.createElement('div');
+
+    var totalPages = Math.max(1, Math.ceil(staticPages.length / ITEMS_PER_PAGE));
+    if (staticPage > totalPages) staticPage = totalPages;
+
+    var startIndex = (staticPage - 1) * ITEMS_PER_PAGE;
+    var endIndex = Math.min(startIndex + ITEMS_PER_PAGE, staticPages.length);
+    var pageItems = staticPages.slice(startIndex, endIndex);
+
+    pageItems.forEach(function(page) {
+        var pageItem = document.createElement('div');
         pageItem.className = 'static-page-item';
-        
-        const actionsDiv = document.createElement('div');
+
+        var actionsDiv = document.createElement('div');
         actionsDiv.className = 'bookmark-actions';
-        
-        const editBtn = document.createElement('button');
+
+        var editBtn = document.createElement('button');
         editBtn.textContent = '编辑';
-        editBtn.addEventListener('click', () => openEditStaticPageModal(page));
-        
+        editBtn.addEventListener('click', function() { openEditStaticPageModal(page); });
+
         actionsDiv.appendChild(editBtn);
-        
-        const link = document.createElement('a');
+
+        var link = document.createElement('a');
         link.href = page.path;
         link.target = '_blank';
-        
-        const iconDiv = document.createElement('div');
+
+        var iconDiv = document.createElement('div');
         iconDiv.className = 'static-page-icon';
-        
+
         if (page.iconType === 'url' && page.icon) {
-            // 显示URL图标
-            const img = document.createElement('img');
+            var img = document.createElement('img');
             img.src = page.icon;
             img.alt = page.name;
             img.onerror = function() {
@@ -785,22 +835,59 @@ function renderStaticPages() {
             };
             iconDiv.appendChild(img);
         } else {
-            // 显示表情图标
             iconDiv.textContent = page.icon || '📄';
         }
-        
-        const nameDiv = document.createElement('div');
+
+        var nameDiv = document.createElement('div');
         nameDiv.className = 'static-page-name';
         nameDiv.textContent = page.name;
-        
+
         link.appendChild(iconDiv);
         link.appendChild(nameDiv);
-        
+
         pageItem.appendChild(actionsDiv);
         pageItem.appendChild(link);
-        
+
         elements.staticPagesContainer.appendChild(pageItem);
     });
+
+    // 翻页导航
+    if (totalPages > 1) {
+        var pagination = document.createElement('div');
+        pagination.className = 'pagination';
+
+        var prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.textContent = '‹';
+        prevBtn.disabled = staticPage <= 1;
+        prevBtn.addEventListener('click', function() {
+            if (staticPage > 1) {
+                staticPage--;
+                renderStaticPages();
+            }
+        });
+
+        var pageInfo = document.createElement('span');
+        pageInfo.className = 'page-info';
+        pageInfo.textContent = staticPage + '/' + totalPages;
+
+        var nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.textContent = '›';
+        nextBtn.disabled = staticPage >= totalPages;
+        nextBtn.addEventListener('click', function() {
+            if (staticPage < totalPages) {
+                staticPage++;
+                renderStaticPages();
+            }
+        });
+
+        pagination.appendChild(prevBtn);
+        pagination.appendChild(pageInfo);
+        pagination.appendChild(nextBtn);
+
+        elements.staticPagesContainer.appendChild(pagination);
+    }
 }
 
 // 从网页URL自动获取favicon（支持多种常见路径）
