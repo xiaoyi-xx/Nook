@@ -753,13 +753,20 @@ function renderBookmarks() {
     elements.bookmarksContainer.appendChild(addBookmarkBtn);
 
     // 翻页导航
+    var existingPagination = document.querySelector('.bookmarks-section > .pagination');
+    if (existingPagination) existingPagination.remove();
+    var existingDots = document.querySelector('.bookmarks-section > .page-dots');
+    if (existingDots) existingDots.remove();
+
     if (totalPages > 1) {
+        var section = elements.bookmarksContainer.closest('.bookmarks-section') || elements.bookmarksContainer.parentElement;
+
         var pagination = document.createElement('div');
         pagination.className = 'pagination';
 
         var prevBtn = document.createElement('button');
-        prevBtn.className = 'page-btn';
-        prevBtn.textContent = '‹';
+        prevBtn.className = 'page-btn prev';
+        prevBtn.innerHTML = '‹';
         prevBtn.disabled = bookmarkPage <= 1;
         prevBtn.addEventListener('click', function() {
             if (bookmarkPage > 1) {
@@ -768,13 +775,9 @@ function renderBookmarks() {
             }
         });
 
-        var pageInfo = document.createElement('span');
-        pageInfo.className = 'page-info';
-        pageInfo.textContent = bookmarkPage + '/' + totalPages;
-
         var nextBtn = document.createElement('button');
-        nextBtn.className = 'page-btn';
-        nextBtn.textContent = '›';
+        nextBtn.className = 'page-btn next';
+        nextBtn.innerHTML = '›';
         nextBtn.disabled = bookmarkPage >= totalPages;
         nextBtn.addEventListener('click', function() {
             if (bookmarkPage < totalPages) {
@@ -784,10 +787,22 @@ function renderBookmarks() {
         });
 
         pagination.appendChild(prevBtn);
-        pagination.appendChild(pageInfo);
         pagination.appendChild(nextBtn);
+        section.appendChild(pagination);
 
-        elements.bookmarksContainer.appendChild(pagination);
+        var dots = document.createElement('div');
+        dots.className = 'page-dots';
+        for (var i = 1; i <= totalPages; i++) {
+            var dot = document.createElement('span');
+            dot.className = 'page-dot';
+            if (i === bookmarkPage) dot.classList.add('active');
+            dot.addEventListener('click', function() {
+                bookmarkPage = Array.from(dots.children).indexOf(this) + 1;
+                renderBookmarks();
+            });
+            dots.appendChild(dot);
+        }
+        section.appendChild(dots);
     }
 }
 
@@ -852,13 +867,20 @@ function renderStaticPages() {
     });
 
     // 翻页导航
+    var existingPagination = document.querySelector('.static-pages-section > .pagination');
+    if (existingPagination) existingPagination.remove();
+    var existingDots = document.querySelector('.static-pages-section > .page-dots');
+    if (existingDots) existingDots.remove();
+
     if (totalPages > 1) {
+        var section = elements.staticPagesContainer.closest('.static-pages-section') || elements.staticPagesContainer.parentElement;
+
         var pagination = document.createElement('div');
         pagination.className = 'pagination';
 
         var prevBtn = document.createElement('button');
-        prevBtn.className = 'page-btn';
-        prevBtn.textContent = '‹';
+        prevBtn.className = 'page-btn prev';
+        prevBtn.innerHTML = '‹';
         prevBtn.disabled = staticPage <= 1;
         prevBtn.addEventListener('click', function() {
             if (staticPage > 1) {
@@ -867,13 +889,9 @@ function renderStaticPages() {
             }
         });
 
-        var pageInfo = document.createElement('span');
-        pageInfo.className = 'page-info';
-        pageInfo.textContent = staticPage + '/' + totalPages;
-
         var nextBtn = document.createElement('button');
-        nextBtn.className = 'page-btn';
-        nextBtn.textContent = '›';
+        nextBtn.className = 'page-btn next';
+        nextBtn.innerHTML = '›';
         nextBtn.disabled = staticPage >= totalPages;
         nextBtn.addEventListener('click', function() {
             if (staticPage < totalPages) {
@@ -883,10 +901,22 @@ function renderStaticPages() {
         });
 
         pagination.appendChild(prevBtn);
-        pagination.appendChild(pageInfo);
         pagination.appendChild(nextBtn);
+        section.appendChild(pagination);
 
-        elements.staticPagesContainer.appendChild(pagination);
+        var dots = document.createElement('div');
+        dots.className = 'page-dots';
+        for (var i = 1; i <= totalPages; i++) {
+            var dot = document.createElement('span');
+            dot.className = 'page-dot';
+            if (i === staticPage) dot.classList.add('active');
+            dot.addEventListener('click', function() {
+                staticPage = Array.from(dots.children).indexOf(this) + 1;
+                renderStaticPages();
+            });
+            dots.appendChild(dot);
+        }
+        section.appendChild(dots);
     }
 }
 
