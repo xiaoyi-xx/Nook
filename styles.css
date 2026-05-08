@@ -1064,37 +1064,32 @@ body.dark footer {
     animation: fadeIn 0.3s ease;
 }
 
-/* 翻页导航 - 悬浮左右箭头 */
+/* 翻页导航 - 底部居中 */
 .bookmarks-section,
 .static-pages-section {
     position: relative;
 }
 
 .pagination {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    transform: translateY(-50%);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    gap: 16px;
+    margin-top: 16px;
     pointer-events: none;
-    z-index: 5;
-    padding: 0 4px;
 }
 
 .page-btn {
     pointer-events: auto;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border: none;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     color: #4a6fa5;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1106,8 +1101,8 @@ body.dark footer {
 
 .page-btn:hover:not(:disabled) {
     background: #fff;
-    box-shadow: 0 4px 20px rgba(74, 111, 165, 0.2);
-    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(74, 111, 165, 0.2);
+    transform: scale(1.1);
 }
 
 .page-btn:active:not(:disabled) {
@@ -1115,20 +1110,20 @@ body.dark footer {
 }
 
 .page-btn:disabled {
-    opacity: 0;
+    opacity: 0.2;
     cursor: default;
 }
 
 body.dark .page-btn {
     background: rgba(45, 45, 45, 0.85);
     backdrop-filter: blur(12px);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     color: #64b5f6;
 }
 
 body.dark .page-btn:hover:not(:disabled) {
     background: rgba(60, 60, 60, 0.95);
-    box-shadow: 0 4px 20px rgba(100, 181, 246, 0.2);
+    box-shadow: 0 4px 16px rgba(100, 181, 246, 0.2);
 }
 
 /* 底部圆点指示器 */
@@ -1171,7 +1166,6 @@ body.dark .page-dot.active {
 body.dark .page-dot:hover {
     background: rgba(100, 181, 246, 0.4);
 }
-
 /* 滚动条样式 */
 ::-webkit-scrollbar {
     width: 8px;
