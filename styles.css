@@ -1064,6 +1064,54 @@ body.dark footer {
 .bookmark-item,
 .static-page-item {
     animation: fadeIn 0.3s ease;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* 长按就绪态 - 卡片轻微上浮 */
+.bookmark-item.drag-ready,
+.static-page-item.drag-ready {
+    cursor: grab;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(74, 111, 165, 0.2);
+    border-color: #4a6fa5 !important;
+}
+
+body.dark .bookmark-item.drag-ready,
+body.dark .static-page-item.drag-ready {
+    box-shadow: 0 6px 24px rgba(100, 181, 246, 0.2);
+    border-color: #64b5f6 !important;
+}
+
+/* 拖拽中 - 半透明 */
+.bookmark-item.dragging,
+.static-page-item.dragging {
+    opacity: 0.3 !important;
+    transform: scale(0.95);
+}
+
+/* 拖拽悬停目标 - 蓝色边框高亮 */
+.bookmark-item.drag-over,
+.static-page-item.drag-over {
+    border-color: #4a6fa5 !important;
+    box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3), 0 4px 16px rgba(74, 111, 165, 0.15);
+    transform: scale(1.04);
+    background: rgba(74, 111, 165, 0.06) !important;
+}
+
+body.dark .bookmark-item.drag-over,
+body.dark .static-page-item.drag-over {
+    border-color: #64b5f6 !important;
+    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.3), 0 4px 16px rgba(100, 181, 246, 0.15);
+    background: rgba(100, 181, 246, 0.08) !important;
+}
+
+/* 移动端拖拽克隆体 */
+.touch-clone {
+    border-radius: 12px;
+    pointer-events: none;
+    transition: none;
 }
 
 /* 翻页导航 - 底部居中 */

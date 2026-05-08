@@ -35,6 +35,9 @@ async function init() {
     loadSettings();
     setupEventListeners();
     renderBookmarks();
+
+    initDragReorder(elements.bookmarksContainer, function() { return bookmarks; }, saveBookmarks, renderBookmarks);
+    initDragReorder(elements.staticPagesContainer, function() { return staticPages; }, saveStaticPages, renderStaticPages);
 }
 
 // 加载设置
@@ -678,6 +681,7 @@ function renderBookmarks() {
     pageItems.forEach(function(bookmark) {
         var bookmarkItem = document.createElement('div');
         bookmarkItem.className = 'bookmark-item';
+        bookmarkItem.setAttribute('data-id', bookmark.id);
 
         var actionsDiv = document.createElement('div');
         actionsDiv.className = 'bookmark-actions';
@@ -824,6 +828,7 @@ function renderStaticPages() {
     pageItems.forEach(function(page) {
         var pageItem = document.createElement('div');
         pageItem.className = 'static-page-item';
+        pageItem.setAttribute('data-id', page.id);
 
         var actionsDiv = document.createElement('div');
         actionsDiv.className = 'bookmark-actions';
@@ -984,6 +989,234 @@ function getFaviconUrl(websiteUrl) {
             img.src = currentUrl;
         }
     });
+}
+
+// 长按拖拽排序引擎
+var dragState = {
+    sourceArray: null,
+    sourceId: null,
+    targetId: null,
+    saveFn: null,
+    renderFn: null,
+    timer: null,
+    ready: false
+};
+
+function initDragReorder(container, getArray, saveFn, renderFn) {
+    var itemsSelector = '.bookmark-item:not(.add-bookmark), .static-page-item';
+
+    function getItem(e) {
+        return e.target.closest(itemsSelector);
+    }
+
+    function findInArray(id) {
+        var arr = getArray();
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].id === id) return { item: arr[i], index: i };
+        }
+        return null;
+    }
+
+    container.addEventListener('mousedown', function(e) {
+        var item = getItem(e);
+        if (!item) return;
+        if (e.target.closest('.bookmark-actions')) return;
+
+        dragState.timer = setTimeout(function() {
+            dragState.ready = true;
+            item.setAttribute('draggable', 'true');
+            item.classList.add('drag-ready');
+        }, 400);
+    });
+
+    document.addEventListener('mouseup', function() {
+        clearTimeout(dragState.timer);
+        if (dragState.ready) {
+            document.querySelectorAll('.drag-ready').forEach(function(el) {
+                el.removeAttribute('draggable');
+                el.classList.remove('drag-ready');
+            });
+            dragState.ready = false;
+        }
+    });
+
+    container.addEventListener('mouseleave', function() {
+        clearTimeout(dragState.timer);
+    });
+
+    container.addEventListener('dragstart', function(e) {
+        var item = getItem(e);
+        if (!item) return;
+        if (!dragState.ready) {
+            e.preventDefault();
+            return;
+        }
+
+        dragState.sourceId = item.getAttribute('data-id');
+        dragState.saveFn = saveFn;
+        dragState.renderFn = renderFn;
+
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', dragState.sourceId);
+    });
+
+    container.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+
+    container.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        var item = getItem(e);
+        if (!item || item.classList.contains('dragging')) return;
+        item.classList.add('drag-over');
+    });
+
+    container.addEventListener('dragleave', function(e) {
+        var item = getItem(e);
+        if (!item) return;
+        var related = e.relatedTarget;
+        if (related && item.contains(related)) return;
+        item.classList.remove('drag-over');
+    });
+
+    container.addEventListener('drop', function(e) {
+        e.preventDefault();
+        var target = getItem(e);
+        if (!target || !dragState.sourceId) return;
+
+        var targetId = target.getAttribute('data-id');
+        if (targetId === dragState.sourceId) return;
+
+        var arr = getArray();
+        var sourceResult = findInArray(dragState.sourceId);
+        var targetResult = findInArray(targetId);
+        if (!sourceResult || !targetResult) return;
+
+        var movedItem = arr.splice(sourceResult.index, 1)[0];
+        arr.splice(targetResult.index, 0, movedItem);
+
+        saveFn();
+        renderFn();
+    });
+
+    container.addEventListener('dragend', function() {
+        document.querySelectorAll('.dragging, .drag-over, .drag-ready').forEach(function(el) {
+            el.removeAttribute('draggable');
+            el.classList.remove('dragging', 'drag-over', 'drag-ready');
+        });
+        dragState.sourceId = null;
+        dragState.ready = false;
+    });
+
+    // Touch support for mobile
+    var touchState = { active: false, clone: null, offsetX: 0, offsetY: 0, sourceId: null, longPressTimer: null };
+
+    container.addEventListener('touchstart', function(e) {
+        var item = getItem(e);
+        if (!item) return;
+        if (e.target.closest('.bookmark-actions')) return;
+
+        var touch = e.touches[0];
+        touchState.longPressTimer = setTimeout(function() {
+            var rect = item.getBoundingClientRect();
+            touchState.offsetX = touch.clientX - rect.left;
+            touchState.offsetY = touch.clientY - rect.top;
+            touchState.sourceId = item.getAttribute('data-id');
+            touchState.active = true;
+
+            var clone = item.cloneNode(true);
+            clone.className = item.className + ' touch-clone';
+            clone.style.position = 'fixed';
+            clone.style.width = rect.width + 'px';
+            clone.style.height = rect.height + 'px';
+            clone.style.left = (touch.clientX - touchState.offsetX) + 'px';
+            clone.style.top = (touch.clientY - touchState.offsetY) + 'px';
+            clone.style.pointerEvents = 'none';
+            clone.style.zIndex = '9999';
+            clone.style.transform = 'scale(1.08) rotate(2deg)';
+            clone.style.opacity = '0.92';
+            clone.style.boxShadow = '0 12px 40px rgba(0,0,0,0.2)';
+            document.body.appendChild(clone);
+            touchState.clone = clone;
+
+            item.classList.add('dragging');
+            item.style.opacity = '0.3';
+        }, 400);
+
+        item.setAttribute('data-touch-x', touch.clientX);
+        item.setAttribute('data-touch-y', touch.clientY);
+    }, { passive: true });
+
+    container.addEventListener('touchmove', function(e) {
+        if (!touchState.active) {
+            clearTimeout(touchState.longPressTimer);
+            return;
+        }
+        e.preventDefault();
+
+        var touch = e.touches[0];
+        if (touchState.clone) {
+            touchState.clone.style.left = (touch.clientX - touchState.offsetX) + 'px';
+            touchState.clone.style.top = (touch.clientY - touchState.offsetY) + 'px';
+        }
+
+        var target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target) {
+            var dropItem = target.closest(itemsSelector);
+            document.querySelectorAll('.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+            if (dropItem && !dropItem.classList.contains('dragging')) {
+                dropItem.classList.add('drag-over');
+            }
+        }
+    }, { passive: false });
+
+    container.addEventListener('touchend', function(e) {
+        clearTimeout(touchState.longPressTimer);
+        if (!touchState.active) return;
+
+        if (touchState.clone) {
+            touchState.clone.remove();
+            touchState.clone = null;
+        }
+
+        document.querySelectorAll('.dragging, .drag-over').forEach(function(el) {
+            el.style.opacity = '';
+            el.classList.remove('dragging', 'drag-over');
+        });
+
+        var touch = e.changedTouches[0];
+        if (touch) {
+            var target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target) {
+                var dropItem = target.closest(itemsSelector);
+                if (dropItem && touchState.sourceId) {
+                    var targetId = dropItem.getAttribute('data-id');
+                    if (targetId && targetId !== touchState.sourceId) {
+                        var arr = getArray();
+                        function findInArr(id) {
+                            for (var i = 0; i < arr.length; i++) {
+                                if (arr[i].id === id) return { index: i };
+                            }
+                            return null;
+                        }
+                        var s = findInArr(touchState.sourceId);
+                        var t = findInArr(targetId);
+                        if (s && t) {
+                            var moved = arr.splice(s.index, 1)[0];
+                            arr.splice(t.index, 0, moved);
+                            saveFn();
+                            renderFn();
+                        }
+                    }
+                }
+            }
+        }
+
+        touchState.active = false;
+        touchState.sourceId = null;
+    }, { passive: true });
 }
 
 // 生成唯一ID
