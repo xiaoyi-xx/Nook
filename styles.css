@@ -643,10 +643,15 @@ body.dark .container.semi-transparent .bookmark-item.add-bookmark {
 }
 
 .bookmark-icon img {
-    width: 40px !important;
-    height: 40px !important;
+    width: 40px;
+    height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    min-width: 16px;
+    min-height: 16px;
     object-fit: contain;
     border-radius: 4px;
+    image-rendering: auto;
 }
 
 .bookmark-name {
@@ -787,10 +792,15 @@ body.dark .static-page-item:hover {
 }
 
 .static-page-icon img {
-    width: 40px !important;
-    height: 40px !important;
+    width: 40px;
+    height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    min-width: 16px;
+    min-height: 16px;
     object-fit: contain;
     border-radius: 4px;
+    image-rendering: auto;
 }
 
 .static-page-name {
