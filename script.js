@@ -4,6 +4,8 @@ let staticPages = [];
 let bookmarkPage = 1;
 let staticPage = 1;
 const ITEMS_PER_PAGE = 6;
+const LIST_ITEMS_PER_PAGE = 24;
+let viewMode = 'grid';
 const searchEngines = {
     google: 'https://www.google.com/search?q=',
     bing: 'https://www.bing.com/search?q=',
@@ -38,6 +40,13 @@ async function init() {
 
     initDragReorder(elements.bookmarksContainer, function() { return bookmarks; }, saveBookmarks, renderBookmarks);
     initDragReorder(elements.staticPagesContainer, function() { return staticPages; }, saveStaticPages, renderStaticPages);
+
+    elements.bookmarksContainer.classList.toggle('list-view', viewMode === 'list');
+    elements.staticPagesContainer.classList.toggle('list-view', viewMode === 'list');
+    var gridBtn = document.getElementById('view-grid-btn');
+    var listBtn = document.getElementById('view-list-btn');
+    if (gridBtn) gridBtn.classList.toggle('active', viewMode === 'grid');
+    if (listBtn) listBtn.classList.toggle('active', viewMode === 'list');
 }
 
 // 加载设置
@@ -49,15 +58,16 @@ function loadSettings() {
             document.body.style.backgroundImage = `url(${settings.backgroundImage})`;
             document.getElementById('bg-image').value = settings.backgroundImage;
         } else {
-            // 设置默认背景图片
             const defaultBgImage = '//';
             document.body.style.backgroundImage = `url(${defaultBgImage})`;
             document.getElementById('bg-image').value = defaultBgImage;
             settings.backgroundImage = defaultBgImage;
             saveSettings(settings);
         }
+        if (settings.viewMode) {
+            viewMode = settings.viewMode;
+        }
     } else {
-        // 设置默认背景图片
         const defaultBgImage = '//';
         document.body.style.backgroundImage = `url(${defaultBgImage})`;
         document.getElementById('bg-image').value = defaultBgImage;
@@ -69,6 +79,31 @@ function loadSettings() {
 // 保存设置
 function saveSettings(settings) {
     localStorage.setItem('settings', JSON.stringify(settings));
+}
+
+// 设置视图模式
+function setViewMode(mode) {
+    viewMode = mode;
+    var settings = JSON.parse(localStorage.getItem('settings') || '{}');
+    settings.viewMode = mode;
+    saveSettings(settings);
+
+    if (!elements.bookmarksContainer || !elements.staticPagesContainer) return;
+
+    elements.bookmarksContainer.classList.toggle('list-view', mode === 'list');
+    elements.staticPagesContainer.classList.toggle('list-view', mode === 'list');
+
+    var gridBtn = document.getElementById('view-grid-btn');
+    var listBtn = document.getElementById('view-list-btn');
+    if (gridBtn && listBtn) {
+        gridBtn.classList.toggle('active', mode === 'grid');
+        listBtn.classList.toggle('active', mode === 'list');
+    }
+
+    bookmarkPage = 1;
+    staticPage = 1;
+    renderBookmarks();
+    renderStaticPages();
 }
 
 // 加载收藏网站
@@ -403,7 +438,14 @@ function setupEventListeners() {
             saveSettings(settings);
         }
     });
-    
+
+    // 视图模式切换
+    document.getElementById('view-grid-btn').addEventListener('click', function() {
+        setViewMode('grid');
+    });
+    document.getElementById('view-list-btn').addEventListener('click', function() {
+        setViewMode('list');
+    });
 
 }
 
@@ -670,7 +712,7 @@ function deleteBookmark(id) {
 function renderBookmarks() {
     elements.bookmarksContainer.innerHTML = '';
 
-    var itemsPerPage = ITEMS_PER_PAGE - 1;
+    var itemsPerPage = viewMode === 'list' ? LIST_ITEMS_PER_PAGE - 1 : ITEMS_PER_PAGE - 1;
     var totalPages = Math.max(1, Math.ceil(bookmarks.length / itemsPerPage));
     if (bookmarkPage > totalPages) bookmarkPage = totalPages;
 
@@ -818,11 +860,12 @@ function renderStaticPages() {
         return;
     }
 
-    var totalPages = Math.max(1, Math.ceil(staticPages.length / ITEMS_PER_PAGE));
+    var totalPages = Math.max(1, Math.ceil(staticPages.length / (viewMode === 'list' ? LIST_ITEMS_PER_PAGE : ITEMS_PER_PAGE)));
     if (staticPage > totalPages) staticPage = totalPages;
 
-    var startIndex = (staticPage - 1) * ITEMS_PER_PAGE;
-    var endIndex = Math.min(startIndex + ITEMS_PER_PAGE, staticPages.length);
+    var pageSize = viewMode === 'list' ? LIST_ITEMS_PER_PAGE : ITEMS_PER_PAGE;
+    var startIndex = (staticPage - 1) * pageSize;
+    var endIndex = Math.min(startIndex + pageSize, staticPages.length);
     var pageItems = staticPages.slice(startIndex, endIndex);
 
     pageItems.forEach(function(page) {
