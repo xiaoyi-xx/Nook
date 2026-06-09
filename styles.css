@@ -283,6 +283,67 @@ body.dark .view-label {
     color: #4a6fa5;
 }
 
+/* 数据导入导出 */
+.data-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.data-action-btn {
+    flex: 1;
+    padding: 12px 10px;
+    border: 2px solid rgba(74, 111, 165, 0.15);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a6fa5;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.data-action-btn:hover {
+    border-color: #4a6fa5;
+    background: rgba(74, 111, 165, 0.08);
+    transform: translateY(-1px);
+}
+
+.data-action-btn:active {
+    transform: translateY(0);
+}
+
+.data-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.4;
+}
+
+body.dark .data-action-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #64b5f6;
+}
+
+body.dark .data-action-btn:hover {
+    border-color: #64b5f6;
+    background: rgba(100, 181, 246, 0.1);
+}
+
+body.dark .data-hint {
+    color: rgba(255, 255, 255, 0.35);
+}
+
 body.dark .view-option.active .view-label {
     color: #64b5f6;
 }

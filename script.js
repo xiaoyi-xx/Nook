@@ -447,6 +447,24 @@ function setupEventListeners() {
         setViewMode('list');
     });
 
+    // 导出数据
+    document.getElementById('export-data-btn').addEventListener('click', exportData);
+
+    // 导入数据 - 点击触发文件选择
+    document.getElementById('import-data-btn').addEventListener('click', function() {
+        document.getElementById('import-file-input').click();
+    });
+
+    // 文件选择后执行导入
+    document.getElementById('import-file-input').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            importData(file);
+        }
+        // 重置 input 以便重复选择同一文件
+        this.value = '';
+    });
+
 }
 
 // 打开编辑静态页面模态框
@@ -1260,6 +1278,108 @@ function initDragReorder(container, getArray, saveFn, renderFn) {
         touchState.active = false;
         touchState.sourceId = null;
     }, { passive: true });
+}
+
+// 导出所有用户数据
+function exportData() {
+    const data = {
+        version: 1,
+        exportDate: new Date().toISOString(),
+        bookmarks: bookmarks,
+        staticPages: staticPages,
+        settings: JSON.parse(localStorage.getItem('settings') || '{}'),
+        theme: localStorage.getItem('theme') || 'light',
+        searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]')
+    };
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nook-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// 导入用户数据
+function importData(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            // 验证数据格式
+            if (!data || typeof data !== 'object') {
+                alert('导入失败：无效的数据文件格式。');
+                return;
+            }
+
+            // 恢复收藏网站
+            if (Array.isArray(data.bookmarks)) {
+                bookmarks = data.bookmarks;
+                localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            }
+
+            // 恢复静态页面
+            if (Array.isArray(data.staticPages)) {
+                staticPages = data.staticPages;
+                localStorage.setItem('staticPages', JSON.stringify(staticPages));
+            }
+
+            // 恢复设置（背景图片、视图模式等）
+            if (data.settings && typeof data.settings === 'object') {
+                localStorage.setItem('settings', JSON.stringify(data.settings));
+                // 立即应用背景
+                if (data.settings.backgroundImage) {
+                    document.body.style.backgroundImage = `url(${data.settings.backgroundImage})`;
+                    document.getElementById('bg-image').value = data.settings.backgroundImage;
+                }
+                if (data.settings.viewMode) {
+                    viewMode = data.settings.viewMode;
+                }
+            }
+
+            // 恢复主题
+            if (data.theme) {
+                localStorage.setItem('theme', data.theme);
+                if (data.theme === 'dark') {
+                    document.body.classList.add('dark');
+                    document.getElementById('theme-btn').textContent = '☀️';
+                } else {
+                    document.body.classList.remove('dark');
+                    document.getElementById('theme-btn').textContent = '🌙';
+                }
+            }
+
+            // 恢复搜索历史
+            if (Array.isArray(data.searchHistory)) {
+                localStorage.setItem('searchHistory', JSON.stringify(data.searchHistory));
+            }
+
+            // 重新渲染
+            bookmarkPage = 1;
+            staticPage = 1;
+            renderBookmarks();
+            renderStaticPages();
+
+            // 更新视图模式切换按钮状态
+            var gridBtn = document.getElementById('view-grid-btn');
+            var listBtn = document.getElementById('view-list-btn');
+            if (gridBtn && listBtn) {
+                gridBtn.classList.toggle('active', viewMode === 'grid');
+                listBtn.classList.toggle('active', viewMode === 'list');
+            }
+
+            alert('数据导入成功！所有设置已恢复。');
+        } catch (err) {
+            alert('导入失败：文件格式错误，请选择有效的备份文件。\n' + err.message);
+        }
+    };
+    reader.readAsText(file);
 }
 
 // 生成唯一ID
