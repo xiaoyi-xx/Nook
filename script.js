@@ -846,9 +846,9 @@ function renderHistoryModal() {
             delBtn.className = 'hmi-del';
             delBtn.textContent = '✕';
             delBtn.title = '删除';
-            delBtn.addEventListener('click', function() {
-                deleteHistoryItem(globalIndex);
-            });
+            delBtn.addEventListener('click', function(idx) {
+                return function() { deleteHistoryItem(idx); };
+            }(globalIndex));
             row.appendChild(delBtn);
             
             groupDiv.appendChild(row);
