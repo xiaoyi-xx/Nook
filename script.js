@@ -933,6 +933,7 @@ function updateSuggestions() {
                     display: bm.name,
                     source: 'bookmark',
                     onClick: function() {
+                        saveSearchHistory(bm.name);
                         hideSuggestions();
                         hideSearchHistory();
                         window.open(bm.url, '_blank');
@@ -948,6 +949,7 @@ function updateSuggestions() {
                     display: page.name,
                     source: 'page',
                     onClick: function() {
+                        saveSearchHistory(page.name);
                         hideSuggestions();
                         hideSearchHistory();
                         window.open(page.path, '_blank');
