@@ -1533,70 +1533,230 @@ function renderStaticPages() {
     }
 }
 
-// 从网页URL自动获取favicon（支持多种常见路径）
+/**
+ * 从网页 URL 自动获取网站图标（favicon/logo）
+ *
+ * 提取逻辑（按优先级从高到低）:
+ *   ① <link rel="apple-touch-icon"> 或 apple-touch-icon-precomposed（sizes 数值最大优先）
+ *   ② <link rel="icon" sizes="...">（sizes 数值最大优先）
+ *   ③ <link rel="icon">
+ *   ④ <link rel="shortcut icon">
+ *   ⑤ 兜底: https://[域名]/favicon.ico
+ *   ⑥ 特殊: 页面中有巨大内联 <svg> 则转为 data:image/svg+xml;base64
+ *   ⑦ 全部失败返回 null
+ *
+ * @param {string} websiteUrl - 网页地址（如 "https://www.example.com"）
+ * @returns {Promise<string|null>} 图标 URL 或 null
+ */
 function getFaviconUrl(websiteUrl) {
     return new Promise(function(resolve) {
-        var fullUrl = websiteUrl;
+        // ---- 1. 标准化 URL ----
+        var fullUrl = websiteUrl.trim();
         if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
             fullUrl = 'https://' + fullUrl;
         }
 
-        var domain;
+        var domain, origin;
         try {
-            domain = new URL(fullUrl).origin;
+            var parsed = new URL(fullUrl);
+            domain = parsed.hostname;            // "www.example.com"
+            origin = parsed.origin;              // "https://www.example.com"
         } catch (e) {
             resolve(null);
             return;
         }
 
-        var paths = [
-            domain + '/favicon.ico',
-            domain + '/favicon.png',
-            domain + '/favicon.svg',
-            domain + '/favicon-32x32.png',
-            domain + '/favicon-16x16.png',
-            domain + '/apple-touch-icon.png',
-            domain + '/apple-touch-icon-precomposed.png',
-            domain + '/favicon-96x96.png',
-            domain + '/favicon-192x192.png',
-            domain + '/favicon-48x48.png',
-            domain + '/favicon-64x64.png',
-            domain + '/favicon-128x128.png'
-        ];
+        // ---- 辅助函数：相对路径 → 绝对路径 ----
+        function resolveUrl(href) {
+            if (!href) return null;
+            // 已经是 data: URI 或绝对 HTTP URL
+            if (href.startsWith('data:') || href.startsWith('http://') || href.startsWith('https://')) {
+                return href;
+            }
+            // 协议相对路径 "//cdn.example.com/icon.png"
+            if (href.startsWith('//')) {
+                return (parsed.protocol === 'https:' ? 'https:' : 'http:') + href;
+            }
+            // 绝对路径 "/static/logo.png"
+            if (href.startsWith('/')) {
+                return origin + href;
+            }
+            // 相对路径 "favicon.ico" 或 "./favicon.ico"
+            var basePath = fullUrl.substring(0, fullUrl.lastIndexOf('/') + 1);
+            return basePath + href.replace(/^\.\//, '');
+        }
 
-        testPaths(paths, 0);
+        // ---- 辅助函数：从 sizes 属性解析最大尺寸 ----
+        function parseMaxSize(sizesAttr) {
+            if (!sizesAttr || typeof sizesAttr !== 'string') return 0;
+            var match = sizesAttr.match(/(\d+)\s*[xX×]\s*(\d+)/);
+            if (match) {
+                return Math.max(parseInt(match[1], 10), parseInt(match[2], 10));
+            }
+            // "any" 关键字视为极大值
+            if (sizesAttr.toLowerCase() === 'any') return 9999;
+            return 0;
+        }
 
-        function testPaths(paths, index) {
-            if (index >= paths.length) {
-                resolve(null);
-                return;
+        // ---- 2. 尝试抓取 HTML 并解析 <head> ----
+        var controller = new AbortController();
+        var fetchTimer = setTimeout(function() { controller.abort(); }, 8000);
+
+        fetch(fullUrl, {
+            signal: controller.signal,
+            headers: { 'Accept': 'text/html,application/xhtml+xml' }
+        })
+        .then(function(response) {
+            clearTimeout(fetchTimer);
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.text();
+        })
+        .then(function(html) {
+            // ---- 2.1 用正则提取 <head>...</head> 内容 ----
+            var headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+            var headContent = headMatch ? headMatch[1] : html.substring(0, 20000);
+
+            // ---- 2.2 提取所有 <link> 标签 ----
+            var linkRegex = /<link[^>]*?>/gi;
+            var linkMatch;
+            var candidates = [];
+
+            while ((linkMatch = linkRegex.exec(headContent)) !== null) {
+                var linkTag = linkMatch[0];
+
+                // 提取 rel / href / sizes
+                var relMatch = linkTag.match(/rel\s*=\s*["']([^"']*?)["']/i);
+                var hrefMatch = linkTag.match(/href\s*=\s*["']([^"']*?)["']/i);
+                var sizesMatch = linkTag.match(/sizes\s*=\s*["']([^"']*?)["']/i);
+
+                if (!relMatch || !hrefMatch) continue;
+
+                var rel = relMatch[1].toLowerCase().trim();
+                var href = hrefMatch[1];
+                var sizes = sizesMatch ? sizesMatch[1] : '';
+                var sizeVal = parseMaxSize(sizes);
+
+                // 按优先级归类
+                var priority = -1; // -1 = 忽略
+                if (rel === 'apple-touch-icon' || rel === 'apple-touch-icon-precomposed') {
+                    priority = 1;  // 最高
+                } else if (rel === 'icon' && sizes) {
+                    priority = 2;
+                } else if (rel === 'icon') {
+                    priority = 3;
+                } else if (rel === 'shortcut icon') {
+                    priority = 4;
+                }
+
+                if (priority > 0) {
+                    candidates.push({ priority: priority, size: sizeVal, href: href, rel: rel });
+                }
             }
 
-            var img = new Image();
-            var currentUrl = paths[index];
+            // ---- 2.3 排序：优先级高 → 低，同优先级 sizes 大 → 小 ----
+            candidates.sort(function(a, b) {
+                if (a.priority !== b.priority) return a.priority - b.priority;
+                return b.size - a.size; // sizes 大的优先
+            });
 
-            var timeout = setTimeout(function() {
-                img.src = '';
-                testPaths(paths, index + 1);
-            }, 5000);
-
-            img.onload = function() {
-                clearTimeout(timeout);
-                if (img.naturalWidth > 1 && img.naturalHeight > 1) {
-                    resolve(currentUrl);
-                } else {
-                    testPaths(paths, index + 1);
+            if (candidates.length > 0) {
+                var resolved = resolveUrl(candidates[0].href);
+                if (resolved) {
+                    resolve(resolved);
+                    return;
                 }
-            };
+            }
 
-            img.onerror = function() {
-                clearTimeout(timeout);
-                testPaths(paths, index + 1);
-            };
+            // ---- 2.4 加分项：查找巨大内联 <svg> 转为 data:URI ----
+            var svgRegex = /<svg[^>]*>[\s\S]*?<\/svg>/gi;
+            var svgMatch;
+            var bestSvg = null;
+            var bestSvgLen = 0;
+            while ((svgMatch = svgRegex.exec(headContent)) !== null) {
+                var svgLen = svgMatch[0].length;
+                // 只取超过 500 字节的 SVG（排除小图标）
+                if (svgLen > 500 && svgLen > bestSvgLen) {
+                    bestSvg = svgMatch[0];
+                    bestSvgLen = svgLen;
+                }
+            }
+            if (bestSvg) {
+                try {
+                    var base64 = btoa(unescape(encodeURIComponent(bestSvg)));
+                    resolve('data:image/svg+xml;base64,' + base64);
+                    return;
+                } catch (e) {
+                    // base64 转换失败，继续兜底方案
+                }
+            }
 
-            img.src = currentUrl;
-        }
+            // ---- 2.5 HTML 解析无结果 → 兜底方案 ----
+            tryCommonPaths(domain, origin, resolve);
+
+        })
+        .catch(function(err) {
+            // ---- 3. 网络/CORS 错误 → 兜底方案 ----
+            clearTimeout(fetchTimer);
+            tryCommonPaths(domain, origin, resolve);
+        });
     });
+}
+
+/**
+ * 兜底方案：尝试常见 favicon 路径列表
+ */
+function tryCommonPaths(domain, origin, resolve) {
+    var commonPaths = [
+        '/favicon.ico',
+        '/favicon.png',
+        '/favicon.svg',
+        '/favicon-192x192.png',
+        '/apple-touch-icon.png',
+        '/apple-touch-icon-precomposed.png',
+        '/favicon-32x32.png',
+        '/favicon-16x16.png',
+        '/favicon-96x96.png',
+        '/favicon-48x48.png',
+        '/favicon-64x64.png',
+        '/favicon-128x128.png'
+    ];
+
+    var index = 0;
+    tryPath();
+
+    function tryPath() {
+        if (index >= commonPaths.length) {
+            // 终极兜底
+            resolve(origin + '/favicon.ico');
+            return;
+        }
+
+        var url = origin + commonPaths[index];
+        var img = new Image();
+        var timeout = setTimeout(function() {
+            img.src = '';
+            index++;
+            tryPath();
+        }, 5000);
+
+        img.onload = function() {
+            clearTimeout(timeout);
+            if (img.naturalWidth > 1 && img.naturalHeight > 1) {
+                resolve(url);
+            } else {
+                index++;
+                tryPath();
+            }
+        };
+
+        img.onerror = function() {
+            clearTimeout(timeout);
+            index++;
+            tryPath();
+        };
+
+        img.src = url;
+    }
 }
 
 // 长按拖拽排序引擎
