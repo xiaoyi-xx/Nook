@@ -384,6 +384,15 @@ function setupEventListeners() {
         e.stopPropagation();
     });
     
+    // 阻止历史记录模态框内容的事件冒泡
+    document.querySelector('#history-modal .modal-content').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+    });
+    
+    document.querySelector('#history-modal .modal-content').addEventListener('mouseup', (e) => {
+        e.stopPropagation();
+    });
+    
     // 静态页面表单提交
     document.getElementById('static-page-form').addEventListener('submit', handleStaticPageSubmit);
     
@@ -414,6 +423,7 @@ function setupEventListeners() {
     document.getElementById('settings-btn').addEventListener('click', function() {
         document.getElementById('settings-panel').classList.add('open');
         document.getElementById('overlay').classList.add('show');
+        renderHistoryList();
     });
     
     // 关闭设置面板
@@ -426,6 +436,12 @@ function setupEventListeners() {
     document.getElementById('overlay').addEventListener('click', function() {
         document.getElementById('settings-panel').classList.remove('open');
         document.getElementById('overlay').classList.remove('show');
+        // 关闭可能打开的模态框
+        var hm = document.getElementById('history-modal');
+        if (hm) {
+            hm.classList.remove('show');
+            hm.style.display = 'none';
+        }
     });
     
     // 搜索联想源切换
@@ -434,6 +450,33 @@ function setupEventListeners() {
         var settings = JSON.parse(localStorage.getItem('settings') || '{}');
         settings.suggestionApi = selectedSuggestionApi;
         saveSettings(settings);
+    });
+    
+    // 清空搜索历史
+    document.getElementById('clear-history-btn').addEventListener('click', function() {
+        if (confirm('确定要清空所有搜索历史吗？')) {
+            localStorage.setItem('searchHistory', '[]');
+            renderHistoryList();
+        }
+    });
+    
+    // 历史管理模态框 - 关闭
+    document.getElementById('close-history-modal').addEventListener('click', closeHistoryModal);
+    
+    // 历史管理模态框 - 打开
+    document.getElementById('open-history-modal-btn').addEventListener('click', function() {
+        document.getElementById('settings-panel').classList.remove('open');
+        document.getElementById('overlay').classList.remove('show');
+        openHistoryModal();
+    });
+    
+    // 历史管理模态框 - 清空全部
+    document.getElementById('clear-history-modal-btn').addEventListener('click', function() {
+        if (confirm('确定要清空所有搜索历史吗？')) {
+            localStorage.setItem('searchHistory', '[]');
+            renderHistoryModal();
+            renderHistoryList();
+        }
     });
     
     // 处理本地图片选择
@@ -567,42 +610,55 @@ function saveSearchHistory(query) {
     
     let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
     
+    // 兼容旧格式（纯字符串数组）
+    if (typeof history[0] === 'string') {
+        history = history.map(function(item) {
+            return typeof item === 'string' ? { q: item, t: Date.now() } : item;
+        });
+    }
+    
     // 移除重复项
-    history = history.filter(item => item !== query);
+    history = history.filter(item => item.q !== query);
     
-    // 添加到开头
-    history.unshift(query);
+    // 添加到开头（带时间戳）
+    history.unshift({ q: query, t: Date.now() });
     
-    // 限制最多5条
-    history = history.slice(0, 5);
+    // 限制最多 50 条
+    history = history.slice(0, 50);
     
     localStorage.setItem('searchHistory', JSON.stringify(history));
 }
 
-// 显示搜索历史
+// 显示搜索历史（下拉）
 function showSearchHistory() {
-    const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    // 兼容旧格式
+    if (typeof history[0] === 'string') {
+        history = history.map(function(item) {
+            return typeof item === 'string' ? { q: item, t: 0 } : item;
+        });
+    }
     const historyContainer = document.getElementById('search-history');
     
     historyContainer.innerHTML = '';
     
     if (history.length > 0) {
-        history.forEach(item => {
+        // 最多显示 8 条
+        history.slice(0, 8).forEach(item => {
             const historyItem = document.createElement('div');
             historyItem.className = 'search-history-item';
-            historyItem.textContent = item;
+            historyItem.textContent = item.q;
             historyItem.addEventListener('click', () => {
-                elements.searchInput.value = item;
+                elements.searchInput.value = item.q;
                 hideSearchHistory();
                 // 触发搜索
                 elements.searchForm.dispatchEvent(new Event('submit'));
             });
             historyContainer.appendChild(historyItem);
         });
-        historyContainer.style.display = 'block';
-    } else {
-        historyContainer.style.display = 'none';
     }
+    
+    historyContainer.style.display = history.length > 0 ? 'block' : 'none';
 }
 
 // 隐藏搜索历史
@@ -610,7 +666,198 @@ function hideSearchHistory() {
     document.getElementById('search-history').style.display = 'none';
 }
 
-// ===== 搜索联想功能 =====
+// 在设置面板中渲染搜索历史列表
+function renderHistoryList() {
+    let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    // 兼容旧格式
+    if (typeof history[0] === 'string') {
+        history = history.map(function(item) {
+            return typeof item === 'string' ? { q: item, t: 0 } : item;
+        });
+    }
+    const container = document.getElementById('history-list');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (history.length === 0) {
+        container.innerHTML = '<div class="history-empty">暂无搜索历史</div>';
+        return;
+    }
+    
+    history.forEach(function(item, index) {
+        const div = document.createElement('div');
+        div.className = 'history-list-item';
+        
+        const text = document.createElement('span');
+        text.className = 'history-text';
+        text.textContent = item.q;
+        div.appendChild(text);
+        
+        const delBtn = document.createElement('button');
+        delBtn.className = 'history-del-btn';
+        delBtn.textContent = '✕';
+        delBtn.title = '删除';
+        delBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteHistoryItem(index);
+        });
+        div.appendChild(delBtn);
+        
+        container.appendChild(div);
+    });
+}
+
+// 删除单条搜索历史
+function deleteHistoryItem(index) {
+    let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    if (typeof history[0] === 'string') {
+        history = history.map(function(item) {
+            return typeof item === 'string' ? { q: item, t: 0 } : item;
+        });
+    }
+    history.splice(index, 1);
+    localStorage.setItem('searchHistory', JSON.stringify(history));
+    renderHistoryList();
+    // 如果历史模态框开着，也刷新
+    var modal = document.getElementById('history-modal');
+    if (modal && modal.classList.contains('show')) {
+        renderHistoryModal();
+    }
+}
+
+// ===== 历史记录管理模态框 =====
+
+// 格式化时间
+function formatHistoryTime(timestamp) {
+    if (!timestamp) return '';
+    var d = new Date(timestamp);
+    var h = d.getHours().toString().padStart(2, '0');
+    var m = d.getMinutes().toString().padStart(2, '0');
+    return h + ':' + m;
+}
+
+// 获取日期分组标签
+function getDateLabel(timestamp) {
+    var d = new Date(timestamp);
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    var dStart = new Date(d);
+    dStart.setHours(0, 0, 0, 0);
+    
+    var diffDays = Math.floor((today - dStart) / 86400000);
+    
+    if (diffDays === 0) return '今天';
+    if (diffDays === 1) return '昨天';
+    if (diffDays < 7) return '本周';
+    
+    var month = (d.getMonth() + 1).toString().padStart(2, '0');
+    var day = d.getDate().toString().padStart(2, '0');
+    return d.getFullYear() + '年' + month + '月' + day + '日';
+}
+
+// 打开历史管理模态框
+function openHistoryModal() {
+    renderHistoryModal();
+    var modal = document.getElementById('history-modal');
+    var overlay = document.getElementById('overlay');
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    overlay.classList.add('show');
+}
+
+// 关闭历史管理模态框
+function closeHistoryModal() {
+    var modal = document.getElementById('history-modal');
+    var overlay = document.getElementById('overlay');
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+    overlay.classList.remove('show');
+}
+
+// 渲染历史管理模态框内容
+function renderHistoryModal() {
+    var raw = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    // 兼容旧格式
+    if (typeof raw[0] === 'string') {
+        raw = raw.map(function(item) {
+            return typeof item === 'string' ? { q: item, t: 0 } : item;
+        });
+    }
+    
+    var body = document.getElementById('history-modal-body');
+    if (!body) return;
+    body.innerHTML = '';
+    
+    if (raw.length === 0) {
+        body.innerHTML = '<div class="history-empty">暂无搜索历史</div>';
+        return;
+    }
+    
+    // 按天分组
+    var groups = {};
+    raw.forEach(function(item) {
+        var label = getDateLabel(item.t || Date.now());
+        if (!groups[label]) groups[label] = [];
+        groups[label].push(item);
+    });
+    
+    // 日期顺序：今天 → 昨天 → 本周 → 更早
+    var order = ['今天', '昨天', '本周'];
+    var sortedLabels = Object.keys(groups).sort(function(a, b) {
+        var ia = order.indexOf(a);
+        var ib = order.indexOf(b);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1;
+        if (ib !== -1) return 1;
+        return 0;
+    });
+    
+    var globalIndex = 0;
+    sortedLabels.forEach(function(label) {
+        var group = groups[label];
+        
+        var groupDiv = document.createElement('div');
+        groupDiv.className = 'history-date-group';
+        
+        var header = document.createElement('div');
+        header.className = 'history-date-header';
+        header.textContent = label;
+        groupDiv.appendChild(header);
+        
+        group.forEach(function(item) {
+            var row = document.createElement('div');
+            row.className = 'history-modal-item';
+            
+            var querySpan = document.createElement('span');
+            querySpan.className = 'hmi-query';
+            querySpan.textContent = item.q;
+            row.appendChild(querySpan);
+            
+            var timeSpan = document.createElement('span');
+            timeSpan.className = 'hmi-time';
+            timeSpan.textContent = item.t ? formatHistoryTime(item.t) : '';
+            row.appendChild(timeSpan);
+            
+            var delBtn = document.createElement('button');
+            delBtn.className = 'hmi-del';
+            delBtn.textContent = '✕';
+            delBtn.title = '删除';
+            delBtn.addEventListener('click', function() {
+                deleteHistoryItem(globalIndex);
+            });
+            row.appendChild(delBtn);
+            
+            groupDiv.appendChild(row);
+            globalIndex++;
+        });
+        
+        body.appendChild(groupDiv);
+    });
+}
 
 // 防抖工具函数
 function debounce(fn, delay) {
@@ -628,9 +875,15 @@ function escapeRegex(string) {
 
 // 从历史记录中模糊匹配搜索联想
 function getHistorySuggestions(query) {
-    const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    // 兼容旧格式
+    if (typeof history[0] === 'string') {
+        history = history.map(function(item) {
+            return typeof item === 'string' ? { q: item, t: 0 } : item;
+        });
+    }
     const lowerQuery = query.toLowerCase();
-    return history.filter(item => item.toLowerCase().includes(lowerQuery));
+    return history.filter(item => item.q.toLowerCase().includes(lowerQuery)).map(item => item.q);
 }
 
 // 名称匹配（支持文字和拼音）

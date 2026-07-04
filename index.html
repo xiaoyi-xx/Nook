@@ -53,6 +53,16 @@
                     </select>
                 </div>
 
+                <!-- 搜索历史管理 -->
+                <div class="form-group">
+                    <label>搜索历史</label>
+                    <div id="history-list" class="history-list"></div>
+                    <div class="data-actions">
+                        <button id="open-history-modal-btn" class="data-action-btn">📋 查看全部</button>
+                        <button id="clear-history-btn" class="data-action-btn danger">🗑 清空全部</button>
+                    </div>
+                </div>
+
                 <!-- 数据导入导出 -->
                 <div class="form-group">
                     <label>数据管理</label>
@@ -212,6 +222,18 @@
                 </div>
                 <button type="submit">保存</button>
             </form>
+        </div>
+    </div>
+    
+    <!-- 搜索历史管理模态框 -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-history-modal" class="close">&times;</span>
+            <h3>搜索历史管理</h3>
+            <div id="history-modal-body" class="history-modal-body"></div>
+            <div style="margin-top:16px;text-align:right">
+                <button id="clear-history-modal-btn" class="data-action-btn danger">🗑 清空全部</button>
+            </div>
         </div>
     </div>
     

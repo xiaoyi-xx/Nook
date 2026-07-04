@@ -348,6 +348,92 @@ body.dark .view-option.active .view-label {
     color: #64b5f6;
 }
 
+/* 搜索历史管理列表 */
+.history-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+}
+
+.history-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.history-list-item:hover {
+    background: rgba(74, 111, 165, 0.06);
+}
+
+body.dark .history-list-item:hover {
+    background: rgba(100, 181, 246, 0.06);
+}
+
+.history-list-item .history-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #333;
+}
+
+body.dark .history-list-item .history-text {
+    color: #ccc;
+}
+
+.history-list-item .history-del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    color: #e74c3c;
+    flex-shrink: 0;
+}
+
+.history-list-item .history-del-btn:hover {
+    opacity: 1;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.history-empty {
+    font-size: 13px;
+    color: #999;
+    padding: 12px 0;
+    text-align: center;
+}
+
+body.dark .history-empty {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.data-action-btn.danger {
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.2);
+}
+
+.data-action-btn.danger:hover {
+    border-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.06);
+}
+
+body.dark .data-action-btn.danger {
+    color: #ff6b6b;
+    border-color: rgba(255, 107, 107, 0.2);
+}
+
+body.dark .data-action-btn.danger:hover {
+    border-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
 /* 遮罩 */
 .overlay {
     position: fixed;
@@ -1955,4 +2041,95 @@ body.dark .search-suggestion-item mark {
 
 body.dark .suggestion-source {
     color: #666;
+}
+
+/* 搜索历史管理模态框 */
+.history-modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.history-date-group {
+    margin-bottom: 20px;
+}
+
+.history-date-group:last-child {
+    margin-bottom: 0;
+}
+
+.history-date-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a6fa5;
+    padding: 6px 0 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 4px;
+}
+
+body.dark .history-date-header {
+    color: #64b5f6;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.history-modal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.history-modal-item:hover {
+    background: rgba(74, 111, 165, 0.06);
+}
+
+body.dark .history-modal-item:hover {
+    background: rgba(100, 181, 246, 0.06);
+}
+
+.history-modal-item .hmi-query {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.dark .history-modal-item .hmi-query {
+    color: #ccc;
+}
+
+.history-modal-item .hmi-time {
+    font-size: 12px;
+    color: #999;
+    margin: 0 12px;
+    flex-shrink: 0;
+}
+
+body.dark .history-modal-item .hmi-time {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.history-modal-item .hmi-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 13px;
+    opacity: 0.4;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    color: #e74c3c;
+    flex-shrink: 0;
+}
+
+.history-modal-item .hmi-del:hover {
+    opacity: 1;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+#history-modal .modal-content {
+    max-width: 500px;
 }
