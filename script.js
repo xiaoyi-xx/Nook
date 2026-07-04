@@ -6,6 +6,8 @@ let staticPage = 1;
 const ITEMS_PER_PAGE = 6;
 const LIST_ITEMS_PER_PAGE = 24;
 let viewMode = 'grid';
+let selectedSuggestionApi = 'Baidu'; // 用户选中的搜索联想源
+let currentSuggestionsQuery = ''; // 当前联想的查询词，用于防过期
 const searchEngines = {
     google: 'https://www.google.com/search?q=',
     bing: 'https://www.bing.com/search?q=',
@@ -66,6 +68,11 @@ function loadSettings() {
         }
         if (settings.viewMode) {
             viewMode = settings.viewMode;
+        }
+        if (settings.suggestionApi) {
+            selectedSuggestionApi = settings.suggestionApi;
+            const select = document.getElementById('suggestion-api');
+            if (select) select.value = selectedSuggestionApi;
         }
     } else {
         const defaultBgImage = '//';
@@ -257,13 +264,23 @@ function setupEventListeners() {
     // 搜索表单提交
     elements.searchForm.addEventListener('submit', handleSearch);
     
-    // 搜索输入框点击事件
-    elements.searchInput.addEventListener('click', showSearchHistory);
+    // 搜索输入框点击事件 - 有点击内容时触发联想，无内容时显示历史
+    elements.searchInput.addEventListener('click', () => {
+        if (elements.searchInput.value.trim()) {
+            updateSuggestions();
+        } else {
+            showSearchHistory();
+        }
+    });
     
-    // 点击页面其他地方隐藏历史记录
+    // 搜索输入框输入事件 - 触发搜索联想（同时展示历史 + API）
+    elements.searchInput.addEventListener('input', debounce(updateSuggestions, 300));
+    
+    // 点击页面其他地方隐藏历史记录和搜索联想
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.search-container-with-history')) {
             hideSearchHistory();
+            hideSuggestions();
         }
     });
     
@@ -409,6 +426,14 @@ function setupEventListeners() {
     document.getElementById('overlay').addEventListener('click', function() {
         document.getElementById('settings-panel').classList.remove('open');
         document.getElementById('overlay').classList.remove('show');
+    });
+    
+    // 搜索联想源切换
+    document.getElementById('suggestion-api').addEventListener('change', function() {
+        selectedSuggestionApi = this.value;
+        var settings = JSON.parse(localStorage.getItem('settings') || '{}');
+        settings.suggestionApi = selectedSuggestionApi;
+        saveSettings(settings);
     });
     
     // 处理本地图片选择
@@ -585,6 +610,254 @@ function hideSearchHistory() {
     document.getElementById('search-history').style.display = 'none';
 }
 
+// ===== 搜索联想功能 =====
+
+// 防抖工具函数
+function debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// 转义正则特殊字符
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 从历史记录中模糊匹配搜索联想
+function getHistorySuggestions(query) {
+    const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    const lowerQuery = query.toLowerCase();
+    return history.filter(item => item.toLowerCase().includes(lowerQuery));
+}
+
+// 更新搜索联想（点击和输入都调用此函数）
+function updateSuggestions() {
+    const query = elements.searchInput.value.trim();
+    currentSuggestionsQuery = query;
+
+    if (query) {
+        hideSearchHistory();
+
+        const container = document.getElementById('search-suggestions');
+        container.innerHTML = '';
+
+        const escapedQuery = escapeRegex(query);
+        const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+
+        // 收集所有本地匹配项
+        const localItems = [];
+
+        // 1. 历史记录匹配
+        getHistorySuggestions(query).forEach(item => {
+            localItems.push({ display: item, source: 'history' });
+        });
+
+        // 2. 收藏网站匹配
+        bookmarks.forEach(bm => {
+            if (bm.name.toLowerCase().includes(query.toLowerCase())) {
+                localItems.push({
+                    display: bm.name,
+                    source: 'bookmark',
+                    onClick: function() {
+                        hideSuggestions();
+                        hideSearchHistory();
+                        window.open(bm.url, '_blank');
+                    }
+                });
+            }
+        });
+
+        // 3. 工具页面匹配
+        staticPages.forEach(page => {
+            if (page.name.toLowerCase().includes(query.toLowerCase())) {
+                localItems.push({
+                    display: page.name,
+                    source: 'page',
+                    onClick: function() {
+                        hideSuggestions();
+                        hideSearchHistory();
+                        window.open(page.path, '_blank');
+                    }
+                });
+            }
+        });
+
+        // 渲染本地匹配项
+        if (localItems.length > 0) {
+            localItems.slice(0, 12).forEach(item => {
+                container.appendChild(
+                    createSuggestionElement(item.display, query, regex, item.source, item.onClick)
+                );
+            });
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+
+        // 始终请求 API 联想（有本地项时追加在后面，无时直接填充）
+        fetchAndShowSuggestions(query, localItems.length > 0);
+    } else {
+        hideSuggestions();
+        showSearchHistory();
+    }
+}
+
+// 搜索联想 API 列表（按优先级依次尝试）
+const suggestionAPIs = [
+    {
+        name: 'Baidu',
+        buildUrl: (query, cb) => 'https://suggestion.baidu.com/su?wd=' + encodeURIComponent(query) + '&cb=' + cb,
+        extract: (data) => data.s || []
+    },
+    {
+        name: 'Bing',
+        buildUrl: (query, cb) => 'https://api.bing.com/qsonhs.aspx?type=cb&q=' + encodeURIComponent(query) + '&cb=' + cb,
+        extract: (data) => {
+            try {
+                const results = data?.AS?.Results || [];
+                const suggests = [];
+                for (const r of results) {
+                    if (r?.Suggests) {
+                        for (const s of r.Suggests) {
+                            if (s?.Txt) suggests.push(s.Txt);
+                        }
+                    }
+                }
+                return suggests;
+            } catch { return []; }
+        }
+    },
+    {
+        name: '360',
+        buildUrl: (query, cb) => 'https://sug.so.360.cn/suggest?word=' + encodeURIComponent(query) + '&callback=' + cb,
+        extract: (data) => {
+            try { return data?.result?.map(r => r.word) || []; }
+            catch { return []; }
+        }
+    }
+];
+
+// 通过 JSONP 获取搜索联想建议（支持备用 API）
+function fetchAndShowSuggestions(query, append, apiIndex) {
+    if (apiIndex === undefined) {
+        // 从用户选中的联想源开始尝试
+        apiIndex = suggestionAPIs.findIndex(api => api.name === selectedSuggestionApi);
+        if (apiIndex === -1) apiIndex = 0;
+    }
+    if (apiIndex >= suggestionAPIs.length) return;
+
+    // 清理旧请求
+    const oldScript = document.getElementById('suggestion-jsonp');
+    if (oldScript) oldScript.remove();
+
+    const api = suggestionAPIs[apiIndex];
+    let responded = false;
+
+    window.suggestionCallback = function(data) {
+        if (responded) return;
+        responded = true;
+        const suggestions = api.extract(data);
+        if (suggestions.length > 0) {
+            if (append) {
+                appendApiSuggestions(suggestions, query);
+            } else {
+                renderSuggestions(suggestions, query);
+            }
+        } else {
+            // 当前 API 无结果，尝试下一个
+            fetchAndShowSuggestions(query, append, apiIndex + 1);
+        }
+    };
+
+    const script = document.createElement('script');
+    script.id = 'suggestion-jsonp';
+    script.src = api.buildUrl(query, 'suggestionCallback');
+    document.body.appendChild(script);
+
+    // 超时则尝试下一个 API
+    setTimeout(() => {
+        if (!responded) {
+            responded = true;
+            fetchAndShowSuggestions(query, append, apiIndex + 1);
+        }
+    }, 3000);
+}
+
+// 创建单个搜索联想项
+function createSuggestionElement(itemDisplay, query, regex, source, onClick) {
+    const div = document.createElement('div');
+    div.className = 'search-suggestion-item';
+
+    const textSpan = document.createElement('span');
+    textSpan.innerHTML = itemDisplay.replace(regex, '<mark>$1</mark>');
+    div.appendChild(textSpan);
+
+    const sourceTag = document.createElement('span');
+    sourceTag.className = 'suggestion-source';
+    sourceTag.textContent =
+        source === 'history' ? '来自历史' :
+        source === 'bookmark' ? '来自收藏' :
+        source === 'page' ? '来自工具' :
+        '来自互联网';
+    div.appendChild(sourceTag);
+
+    div.addEventListener('click', onClick || function() {
+        elements.searchInput.value = typeof itemDisplay === 'string' ? itemDisplay : '';
+        hideSuggestions();
+        hideSearchHistory();
+        elements.searchForm.dispatchEvent(new Event('submit'));
+    });
+    return div;
+}
+
+// 在现有建议后追加 API 联想结果
+function appendApiSuggestions(suggestions, query) {
+    if (query !== currentSuggestionsQuery) return; // 查询已过期，丢弃
+
+    const container = document.getElementById('search-suggestions');
+    const escapedQuery = escapeRegex(query);
+    const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+
+    suggestions.slice(0, 8).forEach(item => {
+        container.appendChild(createSuggestionElement(item, query, regex, 'api'));
+    });
+
+    container.style.display = 'block';
+}
+
+// 渲染搜索联想建议（直接填充）
+function renderSuggestions(suggestions, query) {
+    const container = document.getElementById('search-suggestions');
+    container.innerHTML = '';
+
+    if (suggestions.length > 0) {
+        const escapedQuery = escapeRegex(query);
+        const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+
+        suggestions.slice(0, 8).forEach(item => {
+            container.appendChild(createSuggestionElement(item, query, regex, 'api'));
+        });
+
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+// 隐藏搜索联想建议
+function hideSuggestions() {
+    const container = document.getElementById('search-suggestions');
+    container.style.display = 'none';
+    container.innerHTML = '';
+    // 清理 JSONP 脚本和回调
+    const script = document.getElementById('suggestion-jsonp');
+    if (script) script.remove();
+    window.suggestionCallback = null;
+}
+
 // 处理搜索
 function handleSearch(e) {
     e.preventDefault();
@@ -597,6 +870,7 @@ function handleSearch(e) {
         saveSearchHistory(query);
         elements.searchInput.value = '';
         hideSearchHistory();
+        hideSuggestions();
     }
 }
 

@@ -43,6 +43,14 @@
                         </button>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="suggestion-api">搜索联想源</label>
+                    <select id="suggestion-api">
+                        <option value="Baidu">百度</option>
+                        <option value="Bing">必应</option>
+                        <option value="360">360 搜索</option>
+                    </select>
+                </div>
 
                 <!-- 数据导入导出 -->
                 <div class="form-group">
@@ -70,6 +78,9 @@
                             <input type="text" id="search-input" placeholder="输入搜索内容..." class="bg-image-input2" autocomplete="off" autocapitalize="off" autocorrect="off">
                             <div id="search-history" class="search-history">
                                 <!-- 历史记录将通过JS动态生成 -->
+                            </div>
+                            <div id="search-suggestions" class="search-suggestions">
+                                <!-- 搜索联想将通过JS动态生成 -->
                             </div>
                         </div>
                         <button type="submit">搜索</button>
