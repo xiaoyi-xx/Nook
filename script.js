@@ -633,6 +633,24 @@ function getHistorySuggestions(query) {
     return history.filter(item => item.toLowerCase().includes(lowerQuery));
 }
 
+// 名称匹配（支持文字和拼音）
+function matchesName(name, query) {
+    const lowerName = name.toLowerCase();
+    const lowerQuery = query.toLowerCase();
+    // 直接文字匹配
+    if (lowerName.includes(lowerQuery)) return true;
+    // 拼音匹配（pinyin-pro 库可用时）
+    if (typeof pinyinPro !== 'undefined') {
+        try {
+            const fullPinyin = pinyinPro.pinyin(name, { toneType: 'none' }).replace(/\s+/g, '');
+            if (fullPinyin.includes(lowerQuery)) return true;
+            const firstLetter = pinyinPro.pinyin(name, { pattern: 'first', toneType: 'none' }).replace(/\s+/g, '');
+            if (firstLetter.includes(lowerQuery)) return true;
+        } catch (e) {}
+    }
+    return false;
+}
+
 // 更新搜索联想（点击和输入都调用此函数）
 function updateSuggestions() {
     const query = elements.searchInput.value.trim();
@@ -657,7 +675,7 @@ function updateSuggestions() {
 
         // 2. 收藏网站匹配
         bookmarks.forEach(bm => {
-            if (bm.name.toLowerCase().includes(query.toLowerCase())) {
+            if (matchesName(bm.name, query)) {
                 localItems.push({
                     display: bm.name,
                     source: 'bookmark',
@@ -672,7 +690,7 @@ function updateSuggestions() {
 
         // 3. 工具页面匹配
         staticPages.forEach(page => {
-            if (page.name.toLowerCase().includes(query.toLowerCase())) {
+            if (matchesName(page.name, query)) {
                 localItems.push({
                     display: page.name,
                     source: 'page',
