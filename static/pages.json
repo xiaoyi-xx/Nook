@@ -3,6 +3,7 @@
     "static/em.html",
     "static/zl.html",
     "static/ly.html",
-    "static/bg.html"
+    "static/bg.html",
+    "static/fft2d.html"
   ]
 }

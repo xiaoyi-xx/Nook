@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FFT2D 二维傅里叶变换工具</title>
+<!-- 依赖库（CDN） -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #f0f2f5; color: #333; min-height: 100vh;
+}
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+/* 头部 */
+.header {
+    text-align: center; padding: 30px 0 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff; border-radius: 12px; margin-bottom: 24px;
+}
+.header h1 { font-size: 28px; margin-bottom: 6px; }
+.header p { font-size: 14px; opacity: 0.85; }
+
+/* 卡片 */
+.card {
+    background: #fff; border-radius: 10px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px;
+}
+.card h3 {
+    font-size: 15px; color: #555; margin-bottom: 14px;
+    padding-bottom: 8px; border-bottom: 2px solid #667eea;
+}
+.row { display: flex; gap: 16px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 280px; }
+
+/* 表单 */
+label { display: block; font-size: 13px; color: #666; margin-bottom: 4px; font-weight: 500; }
+input, select {
+    width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9;
+    border-radius: 6px; font-size: 14px; transition: border-color 0.2s;
+    background: #fff;
+}
+input:focus, select:focus { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.15); }
+.form-group { margin-bottom: 12px; }
+.form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.form-row .form-group { flex: 1; min-width: 120px; }
+
+/* 按钮 */
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border: none; border-radius: 6px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-primary { background: #667eea; color: #fff; }
+.btn-primary:hover { background: #5a6fd6; }
+.btn-primary:disabled { background: #b3b3b3; cursor: not-allowed; }
+.btn-danger { background: #ff4d4f; color: #fff; }
+.btn-danger:hover { background: #e04345; }
+.btn-outline { background: #fff; color: #667eea; border: 1px solid #667eea; }
+.btn-outline:hover { background: #f0f2ff; }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* 文件上传 */
+.drop-zone {
+    border: 2px dashed #d9d9d9; border-radius: 8px; padding: 30px;
+    text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa;
+}
+.drop-zone:hover, .drop-zone.dragover { border-color: #667eea; background: #f0f2ff; }
+.drop-zone .icon { font-size: 36px; color: #667eea; }
+.drop-zone p { color: #999; margin-top: 8px; font-size: 14px; }
+.drop-zone .hint { font-size: 12px; color: #bbb; margin-top: 4px; }
+
+/* 文件信息 */
+.file-info { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #f6f8fa; border-radius: 6px; margin-top: 12px; }
+.file-info .name { flex: 1; font-weight: 500; }
+
+/* 预览表格 */
+.table-wrap { overflow: auto; max-height: 300px; border: 1px solid #e8e8e8; border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 6px 10px; text-align: center; border: 1px solid #e8e8e8; white-space: nowrap; }
+th { background: #f6f8fa; font-weight: 600; color: #555; position: sticky; top: 0; z-index: 1; }
+tr:nth-child(even) { background: #fafbfc; }
+
+/* 结果区 */
+.result-table-wrap { max-height: 500px; overflow: auto; border: 1px solid #e8e8e8; border-radius: 6px; }
+.result-table-wrap table { font-size: 12px; }
+.result-table-wrap th:first-child, .result-table-wrap td:first-child { position: sticky; left: 0; z-index: 2; background: #f6f8fa; }
+.chart-container { width: 100%; height: 550px; }
+
+/* 标签页 */
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.tab-btn {
+    padding: 8px 20px; border: 1px solid #d9d9d9; border-radius: 6px 6px 0 0;
+    background: #fafafa; cursor: pointer; font-size: 13px; transition: all 0.2s;
+}
+.tab-btn.active { background: #fff; border-bottom-color: #fff; color: #667eea; font-weight: 600; }
+.tab-btn:hover:not(.active) { background: #f0f0f0; }
+.tab-content { display: none; min-height: 400px; }
+.tab-content.active { display: block; }
+
+/* 提示 */
+.alert {
+    padding: 10px 16px; border-radius: 6px; font-size: 13px;
+    margin-bottom: 12px; display: none;
+}
+.alert-info { background: #e6f7ff; border: 1px solid #91d5ff; color: #0050b3; }
+.alert-error { background: #fff2f0; border: 1px solid #ffccc7; color: #a8071a; }
+.alert-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #135200; }
+
+/* 加载动画 */
+.spinner {
+    display: none; align-items: center; justify-content: center; gap: 10px;
+    padding: 30px; color: #666;
+}
+.spinner.show { display: flex; }
+.spinner .dot {
+    width: 12px; height: 12px; border-radius: 50%; background: #667eea;
+    animation: bounce 0.6s infinite alternate;
+}
+.spinner .dot:nth-child(2) { animation-delay: 0.15s; }
+.spinner .dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { from { opacity: 0.3; transform: translateY(0); } to { opacity: 1; transform: translateY(-10px); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>🌊 FFT2D 二维傅里叶变换工具</h1>
+        <p>纯前端 · 不上传任何数据 · 所有计算在浏览器中完成</p>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <!-- 上传 -->
+    <div class="card">
+        <h3>① 打开数据文件</h3>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <div class="icon">📂</div>
+            <p>点击或拖拽文件到此处</p>
+            <div class="hint">支持 .csv, .xlsx, .xls, .txt（所有数据仅在本地处理）</div>
+        </div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt" style="display:none">
+        <div id="fileInfo" class="file-info" style="display:none">
+            <span class="name" id="fileName"></span>
+        </div>
+        <div id="previewSection" style="display:none; margin-top:12px;">
+            <label>数据预览（前 20 行）：</label>
+            <div class="table-wrap" id="previewTable"></div>
+        </div>
+    </div>
+
+    <!-- 参数 -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <h3>② 选择数据列</h3>
+                <div class="form-group">
+                    <label for="timeCol">时间列</label>
+                    <select id="timeCol" disabled><option>-- 请先打开文件 --</option></select>
+                </div>
+                <div class="form-group">
+                    <label for="spaceCol">空间列（位置/距离）</label>
+                    <select id="spaceCol" disabled><option>-- 请先打开文件 --</option></select>
+                </div>
+                <div class="form-group">
+                    <label for="ampCol">幅值列（要分析的数据）</label>
+                    <select id="ampCol" disabled><option>-- 请先打开文件 --</option></select>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h3>③ 设置参数</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="maxTimeOrder">最大时间阶次（0=全部）</label>
+                        <input type="number" id="maxTimeOrder" value="24" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxSpaceOrder">最大空间阶次（0=全部）</label>
+                        <input type="number" id="maxSpaceOrder" value="8" min="0">
+                    </div>
+                </div>
+                <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                <div class="form-group">
+                    <label for="chartTitle">图题</label>
+                    <input type="text" id="chartTitle" value="FFT2D 幅值谱">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="xLabel">X 轴标签</label>
+                        <input type="text" id="xLabel" value="空间阶次 (Space Order)">
+                    </div>
+                    <div class="form-group">
+                        <label for="yLabel">Y 轴标签</label>
+                        <input type="text" id="yLabel" value="时间阶次 (Time Order)">
+                    </div>
+                    <div class="form-group">
+                        <label for="zLabel">Z 轴标签</label>
+                        <input type="text" id="zLabel" value="幅值 (Amplitude)">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:12px;">
+                    <button class="btn btn-primary" id="computeBtn" onclick="runFFT2D()" disabled>▶ 执行 FFT2D</button>
+                    <button class="btn btn-outline btn-sm" id="exportCsvBtn" onclick="exportCSV()" disabled>📥 导出 CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果 -->
+    <div class="card" id="resultSection" style="display:none;">
+        <h3>④ FFT2D 结果</h3>
+        <div id="resultInfo" style="font-size:13px; color:#52c41a; margin-bottom:10px;"></div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('table')">📊 结果表格</button>
+            <button class="tab-btn" onclick="switchTab('heatmap')">🔥 热力图</button>
+            <button class="tab-btn" onclick="switchTab('bar3d')">📊 三维网格图</button>
+        </div>
+
+        <div class="spinner" id="spinner">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span id="spinnerText">正在计算 FFT2D...</span>
+        </div>
+
+        <div class="tab-content active" id="tab-table">
+            <div class="result-table-wrap" id="resultTable"></div>
+        </div>
+        <div class="tab-content" id="tab-heatmap">
+            <div class="chart-container" id="heatmapChart"></div>
+        </div>
+        <div class="tab-content" id="tab-bar3d">
+            <div class="chart-container" id="bar3dChart"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================================
+// FFT2D 数学核心（JavaScript 实现）
+// ============================================================================
+
+// 复数运算：用 {re, im} 对象表示复数
+function cadd(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+function cmul(a, b) { return { re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re }; }
+function cexpj(theta) { return { re: Math.cos(theta), im: -Math.sin(theta) }; }
+function cabs(c) { return Math.sqrt(c.re*c.re + c.im*c.im); }
+
+/**
+ * 一维 DFT（JavaScript 实现）
+ * x: 实数数组
+ * cancelCheck: 可选，每次迭代前调用，返回 true 则取消
+ * onProgress: 可选，function(k, N)，报告进度
+ * 返回: 复数数组 [{re, im}, ...] 或 null（取消时）
+ */
+function dftJS(x, cancelCheck, onProgress) {
+    const N = x.length;
+    const result = [];
+    for (let k = 0; k < N; k++) {
+        if (cancelCheck && cancelCheck()) return null;
+        if (onProgress) onProgress(k, N);
+        let sum = { re: 0, im: 0 };
+        for (let n = 0; n < N; n++) {
+            const angle = 2 * Math.PI * k * n / N;
+            const w = cexpj(angle);           // e^(-j * angle)
+            sum = cadd(sum, { re: x[n] * w.re, im: x[n] * w.im });
+        }
+        result.push(sum);
+    }
+    return result;
+}
+
+/**
+ * 一维 DFT，支持复数输入（用于二维变换的第二步）
+ * x: 复数数组 [{re, im}, ...]
+ * cancelCheck: 可选取消检查
+ * 返回: 复数数组 [{re, im}, ...] 或 null
+ */
+function dftComplexJS(x, cancelCheck) {
+    const N = x.length;
+    const result = [];
+    for (let k = 0; k < N; k++) {
+        if (cancelCheck && cancelCheck()) return null;
+        let sum = { re: 0, im: 0 };
+        for (let n = 0; n < N; n++) {
+            const angle = 2 * Math.PI * k * n / N;
+            const w = cexpj(angle);               // e^(-j * angle)
+            sum = cadd(sum, cmul(x[n], w));        // 复数乘法
+        }
+        result.push(sum);
+    }
+    return result;
+}
+
+/**
+ * 二维 DFT
+ * data: 二维实数数组 [time][space]
+ * cancelCheck: 可选取消检查函数
+ * onProgress: function(current, total)
+ * 返回: 二维复数数组 或 null
+ */
+function dft2JS(data, cancelCheck, onProgress) {
+    const rows = data.length;
+    const cols = data[0].length;
+    let total = rows + cols;
+    let done = 0;
+
+    // 第1步：对每一行做 DFT（实数输入 → 复数输出）
+    const rowResult = [];
+    for (let i = 0; i < rows; i++) {
+        if (cancelCheck && cancelCheck()) return null;
+        if (onProgress) onProgress(++done, total);
+        rowResult.push(dftJS(data[i], cancelCheck));
+        if (rowResult[i] === null) return null;
+    }
+
+    // 第2步：对每一列做 DFT（复数输入 → 复数输出）
+    const colResult = [];
+    for (let j = 0; j < cols; j++) {
+        if (cancelCheck && cancelCheck()) return null;
+        if (onProgress) onProgress(++done, total);
+        const col = [];
+        for (let i = 0; i < rows; i++) col.push(rowResult[i][j]);
+        const colDFT = dftComplexJS(col, cancelCheck);
+        if (colDFT === null) return null;
+        colResult.push(colDFT);
+    }
+
+    // 转置回 row-major
+    const result = [];
+    for (let i = 0; i < rows; i++) {
+        const row = [];
+        for (let j = 0; j < cols; j++) row.push(colResult[j][i]);
+        result.push(row);
+    }
+    return result;
+}
+
+/** FFT2D 后处理：取幅值 + 归一化 */
+function dft2PostprocessJS(data, timePts, spacePts, cancelCheck) {
+    const fft2 = dft2JS(data, cancelCheck);
+    if (!fft2) return null;
+    const factor = timePts * spacePts / 2.0;
+    const result = [];
+    for (let i = 0; i < timePts; i++) {
+        const row = [];
+        for (let j = 0; j < spacePts; j++) {
+            row.push(cabs(fft2[i][j]) / factor);
+        }
+        result.push(row);
+    }
+    result[0][0] /= 2.0;
+    return result;
+}
+
+/** 从 FFT2D 结果中提取指定阶次 */
+function getOrderComponentJS(result, timeOrder, spaceOrder, timePts, spacePts) {
+    let ti = timeOrder <= 0 ? -timeOrder : timePts - timeOrder;
+    let si = spaceOrder < 0 ? spacePts + spaceOrder : spaceOrder;
+    return result[ti][si];
+}
+
+/** 主入口：执行完整 FFT2D */
+function computeFFT2DJS(dataMatrix, cancelCheck, onProgress) {
+    if (onProgress) onProgress('正在准备数据...', 0);
+    const timePts = dataMatrix.length;
+    const spacePts = dataMatrix[0].length;
+    const result = dft2PostprocessJS(dataMatrix, timePts, spacePts, cancelCheck);
+    if (!result) return null;
+    return { result, timePts, spacePts };
+}
+
+// ============================================================================
+// 构建结果数据
+// ============================================================================
+function buildResultJS(fft2Result, maxTimeOrder, maxSpaceOrder, timePts, spacePts) {
+    if (maxTimeOrder === 0) {
+        maxTimeOrder = timePts % 2 === 1 ? (timePts - 1) / 2 : timePts / 2 - 1;
+    }
+    if (maxSpaceOrder === 0) {
+        maxSpaceOrder = spacePts % 2 === 1 ? (spacePts - 1) / 2 : spacePts / 2 - 1;
+    }
+    maxTimeOrder = Math.abs(maxTimeOrder);
+    maxSpaceOrder = Math.abs(maxSpaceOrder);
+
+    const tOrders = [], sOrders = [];
+    for (let t = -maxTimeOrder; t <= maxTimeOrder; t++) tOrders.push(t);
+    for (let s = -maxSpaceOrder; s <= maxSpaceOrder; s++) sOrders.push(s);
+
+    const values = [];
+    const csvRows = ['Time\\Space,' + sOrders.join(',')];
+    for (let i = 0; i < tOrders.length; i++) {
+        const row = [];
+        for (let j = 0; j < sOrders.length; j++) {
+            const v = getOrderComponentJS(fft2Result, tOrders[i], sOrders[j], timePts, spacePts);
+            row.push(v);
+        }
+        values.push(row);
+        csvRows.push(tOrders[i] + ',' + row.join(','));
+    }
+    return { timeOrders: tOrders, spaceOrders: sOrders, values, tableCSV: csvRows.join('\n') };
+}
+
+// ============================================================================
+// 应用状态
+// ============================================================================
+const state = { rawData: null, columns: [], result: null, info: null, canceled: false };
+
+// ============================================================================
+// UI 辅助
+// ============================================================================
+function showAlert(type, msg) {
+    const el = document.getElementById('alert');
+    el.className = 'alert alert-' + type;
+    el.textContent = msg; el.style.display = 'block';
+}
+function hideAlert() { document.getElementById('alert').style.display = 'none'; }
+function showSpinner(text) {
+    document.getElementById('spinnerText').textContent = text || '正在计算 FFT2D...';
+    document.getElementById('spinner').classList.add('show');
+}
+function hideSpinner() { document.getElementById('spinner').classList.remove('show'); }
+
+// ============================================================================
+// 文件读取
+// ============================================================================
+const $ = id => document.getElementById(id);
+$('fileInput').addEventListener('change', e => {
+    if (e.target.files.length > 0) handleFile(e.target.files[0]);
+});
+const dz = $('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+    hideAlert();
+    $('fileName').textContent = file.name;
+    $('fileInfo').style.display = 'flex';
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        try {
+            let data;
+            if (ext === 'csv' || ext === 'txt') {
+                const parsed = Papa.parse(e.target.result, { header: true, skipEmptyLines: true });
+                data = parsed.data;
+            } else if (ext === 'xlsx' || ext === 'xls') {
+                const wb = XLSX.read(e.target.result, { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                data = XLSX.utils.sheet_to_json(ws);
+            } else {
+                showAlert('error', '不支持的文件格式：.' + ext);
+                return;
+            }
+            if (!data || data.length === 0) { showAlert('error', '文件为空'); return; }
+            loadData(data);
+        } catch (err) {
+            showAlert('error', '解析失败：' + err.message);
+        }
+    };
+
+    if (ext === 'csv' || ext === 'txt') reader.readAsText(file);
+    else reader.readAsArrayBuffer(file);
+}
+
+function loadData(data) {
+    const columns = Object.keys(data[0]);
+    state.rawData = data;
+    state.columns = columns;
+
+    // 更新下拉菜单
+    ['timeCol', 'spaceCol', 'ampCol'].forEach((id, idx) => {
+        const sel = $(id); sel.innerHTML = '';
+        columns.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c; o.textContent = c; sel.appendChild(o);
+        });
+        sel.disabled = false;
+        if (idx < columns.length) sel.selectedIndex = idx;
+    });
+
+    // 预览
+    const preview = data.slice(0, 20);
+    let html = '<table><thead><tr>' + columns.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr></thead><tbody>';
+    preview.forEach(row => {
+        html += '<tr>' + columns.map(c => '<td>' + esc(String(row[c] ?? '')) + '</td>').join('') + '</tr>';
+    });
+    html += '</tbody></table>';
+    $('previewTable').innerHTML = html;
+    $('previewSection').style.display = 'block';
+    $('computeBtn').disabled = false;
+    showAlert('success', '文件加载成功：' + data.length + ' 行 × ' + columns.length + ' 列');
+}
+
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// ============================================================================
+// FFT2D 计算
+// ============================================================================
+function runFFT2D() {
+    if (!state.rawData) { showAlert('warning', '请先打开数据文件'); return; }
+    const timeCol = $('timeCol').value, spaceCol = $('spaceCol').value, ampCol = $('ampCol').value;
+    if (!timeCol || !spaceCol || !ampCol) { showAlert('warning', '请选择时间列、空间列和幅值列'); return; }
+
+    $('resultSection').style.display = 'none';
+    hideAlert();
+    $('computeBtn').disabled = true;
+    $('exportCsvBtn').disabled = true;
+    state.canceled = false;
+
+    // 使用 setTimeout 让 UI 先更新再开始计算
+    setTimeout(() => {
+        try {
+            // 提取数据
+            const raw = state.rawData;
+            const timeSet = new Set(), spaceSet = new Set();
+            const map = {};
+            raw.forEach(row => {
+                const t = Number(row[timeCol]), s = Number(row[spaceCol]), v = Number(row[ampCol]);
+                if (isNaN(t) || isNaN(s) || isNaN(v)) return;
+                timeSet.add(t); spaceSet.add(s);
+                const key = t + ',' + s;
+                if (!map[key]) map[key] = [];
+                map[key].push(v);
+            });
+
+            const times = Array.from(timeSet).sort((a, b) => a - b);
+            const spaces = Array.from(spaceSet).sort((a, b) => a - b);
+
+            // 构建矩阵
+            const dataMatrix = [];
+            times.forEach(t => {
+                const row = [];
+                spaces.forEach(s => {
+                    const key = t + ',' + s;
+                    const vals = map[key];
+                    row.push(vals ? vals.reduce((a, b) => a + b, 0) / vals.length : 0);
+                });
+                dataMatrix.push(row);
+            });
+
+            if (dataMatrix.length < 3 || dataMatrix[0].length < 3) {
+                showAlert('error', '数据点太少（' + dataMatrix.length + '×' + dataMatrix[0].length + '），至少需要 3×3');
+                $('computeBtn').disabled = false; return;
+            }
+
+            const maxT = parseInt($('maxTimeOrder').value) || 24;
+            if (maxT > 0 && dataMatrix.length <= maxT * 2) {
+                if (!confirm('时间点数 ' + dataMatrix.length + ' 不满足 Nyquist 条件（需要 > ' + (maxT * 2) + '），结果可能不准确。是否继续？')) {
+                    $('computeBtn').disabled = false; return;
+                }
+            }
+
+            showSpinner('正在执行二维傅里叶变换...');
+            const maxS = parseInt($('maxSpaceOrder').value) || 8;
+
+            // 取消检查
+            const checkCancel = () => state.canceled;
+
+            // 进度回调
+            const onProgress = (msg, pct) => {
+                if (typeof msg === 'string') showSpinner(msg);
+            };
+
+            // 执行（用 setTimeout 让 UI 能刷新）
+            setTimeout(() => {
+                const fftResult = computeFFT2DJS(dataMatrix, checkCancel, onProgress);
+                if (state.canceled) {
+                    $('computeBtn').disabled = false; hideSpinner();
+                    showAlert('info', '计算已取消'); return;
+                }
+                if (!fftResult) {
+                    $('computeBtn').disabled = false; hideSpinner();
+                    showAlert('error', '计算失败'); return;
+                }
+
+                const built = buildResultJS(fftResult.result, maxT, maxS, fftResult.timePts, fftResult.spacePts);
+                state.result = built;
+                state.info = { nTime: dataMatrix.length, nSpace: dataMatrix[0].length };
+
+                hideSpinner();
+                $('computeBtn').disabled = false;
+                showResults();
+            }, 50);
+
+        } catch (err) {
+            $('computeBtn').disabled = false; hideSpinner();
+            showAlert('error', '计算出错：' + err.message);
+        }
+    }, 50);
+}
+
+// ============================================================================
+// 显示结果
+// ============================================================================
+
+/** 格式化数值：避免科学计数法，保留 6 位有效数字 */
+function formatVal(v) {
+    if (v === 0) return '0';
+    // 用 toFixed 保留 6 位小数，再去掉末尾多余的 0
+    let s = v.toFixed(6);
+    // 去掉末尾多余的 0（但保留至少 1 位小数精度）
+    if (s.includes('.')) {
+        s = s.replace(/0+$/, '');
+        s = s.replace(/\.$/, '');
+    }
+    return s;
+}
+
+function showResults() {
+    const r = state.result;
+    if (!r) return;
+    $('resultSection').style.display = 'block';
+    $('resultInfo').textContent = '计算完成：' + state.info.nTime + ' 时间点 × ' + state.info.nSpace + ' 空间点 → FFT2D 成功';
+    $('exportCsvBtn').disabled = false;
+
+    // 表格
+    let html = '<table><thead><tr><th>Time\\Space</th>';
+    r.spaceOrders.forEach(s => html += '<th>' + s + '</th>');
+    html += '</tr></thead><tbody>';
+    for (let i = 0; i < r.timeOrders.length; i++) {
+        html += '<tr><th>' + r.timeOrders[i] + '</th>';
+        for (let j = 0; j < r.spaceOrders.length; j++) {
+            html += '<td>' + formatVal(r.values[i][j]) + '</td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    $('resultTable').innerHTML = html;
+
+    // 热力图
+    const zData = r.values.map(row => row.slice());
+    Plotly.newPlot('heatmapChart', [{
+        z: zData, x: r.spaceOrders, y: r.timeOrders,
+        type: 'heatmap', colorscale: 'Jet',
+        colorbar: { title: $('zLabel').value },
+        hovertemplate: '空间阶次: %{x}<br>时间阶次: %{y}<br>幅值: %{z:.6g}<extra></extra>',
+    }], {
+        title: $('chartTitle').value,
+        xaxis: { title: $('xLabel').value },
+        yaxis: { title: $('yLabel').value },
+        margin: { l: 60, r: 40, t: 50, b: 60 },
+        paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    }, { responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d'] });
+
+    // 3D 网格图
+    const x = [], y = [], z = [];
+    for (let i = 0; i < r.timeOrders.length; i++) {
+        for (let j = 0; j < r.spaceOrders.length; j++) {
+            y.push(r.timeOrders[i]); x.push(r.spaceOrders[j]); z.push(r.values[i][j]);
+        }
+    }
+    const maxZ = Math.max(...z);
+    Plotly.newPlot('bar3dChart', [{
+        x, y, z, type: 'mesh3d', intensity: z, colorscale: 'Jet',
+        showscale: true, opacity: 0.85,
+        colorbar: { title: $('zLabel').value },
+        hovertemplate: '空间阶次: %{x}<br>时间阶次: %{y}<br>幅值: %{z:.6g}<extra></extra>',
+    }], {
+        title: $('chartTitle').value,
+        scene: {
+            xaxis: { title: $('xLabel').value },
+            yaxis: { title: $('yLabel').value },
+            zaxis: { title: $('zLabel').value, range: [0, maxZ * 1.1] },
+            camera: { eye: { x: 1.5, y: -1.5, z: 1.0 } },
+        },
+        margin: { l: 0, r: 0, t: 50, b: 0 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+    }, { responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d'] });
+
+    switchTab('table');
+}
+
+// ============================================================================
+// 标签页切换
+// ============================================================================
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+    const map = { table: 0, heatmap: 1, bar3d: 2 };
+    document.querySelectorAll('.tab-btn')[map[tab]].classList.add('active');
+    $('tab-' + tab).classList.add('active');
+    ['heatmapChart', 'bar3dChart'].forEach(id => {
+        const el = $(id);
+        if (el && el.data && id.includes(tab)) Plotly.Plots.resize(el);
+    });
+}
+
+// ============================================================================
+// 导出 CSV
+// ============================================================================
+function exportCSV() {
+    if (!state.result) { showAlert('warning', '没有可导出的结果'); return; }
+    const blob = new Blob(['\uFEFF' + state.result.tableCSV], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'FFT2D_result.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showAlert('success', 'CSV 已下载');
+}
+</script>
+</body>
+</html>
