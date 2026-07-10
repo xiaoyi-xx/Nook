@@ -4,6 +4,7 @@
     "static/zl.html",
     "static/ly.html",
     "static/bg.html",
-    "static/fft2d.html"
+    "static/fft2d.html",
+    "static/csv_wide_to_long.html"
   ]
 }
