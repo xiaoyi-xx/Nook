@@ -4,10 +4,54 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FFT2D 二维傅里叶变换工具</title>
-<!-- 依赖库（本地加载） -->
-<script src="vendor/papaparse.min.js"></script>
-<script src="vendor/xlsx.full.min.js"></script>
-<script src="vendor/plotly.min.js"></script>
+<!-- 依赖库：本地与 CDN 竞速-->
+<script>
+(function() {
+    var libs = [
+        { local: 'vendor/papaparse.min.js', cdn: 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js' },
+        { local: 'vendor/xlsx.full.min.js',  cdn: 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js' },
+        { local: 'vendor/plotly.min.js',     cdn: 'https://cdn.plot.ly/plotly-2.35.2.min.js' }
+    ];
+    var loaded = {};
+    function race(lib, index) {
+        var key = index;
+        var done = false;
+        function onLoad(src) {
+            if (done) return;
+            done = true;
+            console.log('✓ [' + lib.local + '] 使用: ' + src);
+            loadNext(index + 1);
+        }
+        function onError(src) {
+            if (done) return;
+            console.warn('✗ [' + lib.local + '] 失败: ' + src);
+        }
+        // 本地
+        var s1 = document.createElement('script');
+        s1.src = lib.local;
+        s1.onload = function() { onLoad(lib.local); };
+        s1.onerror = function() { onError(lib.local); if (!done) tryCDN(); };
+        document.head.appendChild(s1);
+        // CDN
+        function tryCDN() {
+            var s2 = document.createElement('script');
+            s2.src = lib.cdn;
+            s2.onload = function() { onLoad(lib.cdn); };
+            s2.onerror = function() { onError(lib.cdn); loadNext(index + 1); };
+            document.head.appendChild(s2);
+        }
+        // 如果本地在 3 秒内没加载完，自动发起 CDN 请求
+        setTimeout(function() {
+            if (!done) tryCDN();
+        }, 3000);
+    }
+    function loadNext(index) {
+        if (index >= libs.length) return;
+        race(libs[index], index);
+    }
+    loadNext(0);
+})();
+</script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
